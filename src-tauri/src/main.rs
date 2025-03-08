@@ -7,8 +7,9 @@ use libsql::{Connection, Error as LibsqlError, Value};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use serde_json::Value as JsonValue;
-use std::{collections::HashMap, env, sync::Mutex};
+use std::{collections::HashMap, env};
 use tauri::{command, ActivationPolicy, Manager, State};
+use tokio::sync::Mutex;
 
 use entity::{message::Model as Message, *};
 
@@ -84,9 +85,7 @@ async fn init_libsql(state: State<'_, Mutex<AppState>>, path: String) -> Result<
         .map_err(|e| format!("Failed to connect to database: {}", e))?;
 
     // Store connection in state
-    let mut state = state
-        .lock()
-        .map_err(|e| format!("Failed to acquire lock: {}", e))?;
+    let mut state = state.lock().await;
     state.libsql = Some(conn);
 
     Ok(())
@@ -98,9 +97,7 @@ async fn execute(
     query: String,
     values: Vec<JsonValue>,
 ) -> Result<(u64, i64), String> {
-    let mut state = state
-        .lock()
-        .map_err(|e| format!("Failed to acquire lock: {}", e))?;
+    let mut state = state.lock().await;
 
     let conn = state
         .libsql
@@ -136,9 +133,7 @@ async fn select(
     query: String,
     values: Vec<JsonValue>,
 ) -> Result<Vec<HashMap<String, JsonValue>>, String> {
-    let mut state = state
-        .lock()
-        .map_err(|e| format!("Failed to acquire lock: {}", e))?;
+    let mut state = state.lock().await;
 
     let conn = state
         .libsql
@@ -191,9 +186,7 @@ async fn init_db(state: State<'_, Mutex<AppState>>, path: String) -> Result<(), 
         .await
         .map_err(|e| format!("Failed to run migrations: {}", e))?;
 
-    let mut state = state
-        .lock()
-        .map_err(|e| format!("Failed to acquire lock: {}", e))?;
+    let mut state = state.lock().await;
     state.db = conn;
 
     Ok(())
@@ -226,11 +219,7 @@ async fn get_setting(
 ) -> Result<Option<setting::Model>, String> {
     use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
-    let db = state
-        .lock()
-        .map_err(|e| format!("Failed to acquire lock: {}", e))?
-        .db
-        .clone();
+    let db = state.lock().await.db.clone();
 
     setting::Entity::find()
         .filter(setting::Column::Id.eq(id))
@@ -248,11 +237,7 @@ async fn set_setting(
     use chrono::Utc;
     use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 
-    let db = state
-        .lock()
-        .map_err(|e| format!("Failed to acquire lock: {}", e))?
-        .db
-        .clone();
+    let db = state.lock().await.db.clone();
 
     // Check if setting exists
     let setting_exists = setting::Entity::find()
