@@ -2,27 +2,19 @@ import './index.css'
 
 import { JSXElement, onMount } from 'solid-js'
 
-import { appDataDir } from '@tauri-apps/api/path'
-import { db } from './db/database'
-import { initDb } from './lib/commands'
 import { createAppDataDir } from './lib/fs'
+import Database from './lib/plugin-libsql'
 import { createTray } from './lib/tray'
 
 const init = async () => {
   createTray()
   createAppDataDir()
 
-  const dataDir = await appDataDir()
-  const dbPath = `sqlite://${dataDir}/local.db?mode=rwc`
-  console.log('Initializing database in', dbPath)
-  initDb(dbPath)
+  const db = await Database.load('sqlite://local.db?mode=rwc')
+  console.log('🚀 ~ db:', db)
 
-  db.query.settings
-    .findMany()
-    .execute()
-    .then((results) => {
-      console.log('🚀 ~ FindMany response from Drizzle:', results)
-    })
+  const result = await db.execute('SELECT 1')
+  console.log('🚀 ~ result:', result)
 }
 
 export default function App({ children }: { children?: JSXElement }) {

@@ -53,6 +53,7 @@ fn get_openai_api_key() -> String {
 
     openai_api_key.to_string()
 }
+
 #[command]
 async fn get_setting(
     state: State<'_, Mutex<AppState>>,
@@ -178,6 +179,7 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_process::init())
+        .plugin(mozilla_assist_lib::libsql_plugin::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             app.manage(Mutex::new(AppState::default()));
