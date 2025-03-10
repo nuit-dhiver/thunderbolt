@@ -3,12 +3,21 @@ import path from 'path'
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
 import solid from 'vite-plugin-solid'
+import { bundleMigrations } from './src/db/bundle-migrations'
 
 const host = process.env.TAURI_DEV_HOST
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [
+    {
+      name: 'bundle-migrations',
+      async buildStart() {
+        bundleMigrations({
+          migrationsDir: path.resolve(__dirname, 'src/drizzle'),
+        })
+      },
+    },
     tailwindcss(),
     solid(),
     analyzer({

@@ -2,55 +2,52 @@ import './index.css'
 
 import { JSXElement, onMount } from 'solid-js'
 
-import { sql } from 'drizzle-orm'
-import { db } from './db/database'
-import { settings } from './db/schema'
 import { createAppDataDir } from './lib/fs'
-import Database from './lib/libsql'
 import { createTray } from './lib/tray'
+import { migrate } from './db/migrate'
 
 const init = async () => {
   createTray()
   createAppDataDir()
 
-  console.log('11111')
+  // console.log('11111')
 
-  const libsql = await Database.load('data/local.db')
-  console.log('🚀 ~ db:', libsql)
+  // const libsql = await Database.load('data/local.db')
+  // console.log('🚀 ~ db:', libsql)
 
-  // await migrate()
+  await migrate()
 
-  // Create the setting table if it doesn't exist
-  await libsql.execute(`
-    CREATE TABLE IF NOT EXISTS \`setting\` (
-      \`id\` integer PRIMARY KEY NOT NULL,
-      \`value\` text,
-      \`updated_at\` text DEFAULT 'CURRENT_TIMESTAMP',
-      \`embedding\` vector(32)
-    );
-  `)
+  // // Create the setting table if it doesn't exist
+  // await libsql.execute(`
+  //   CREATE TABLE IF NOT EXISTS \`setting\` (
+  //     \`id\` integer PRIMARY KEY NOT NULL,
+  //     \`value\` text,
+  //     \`updated_at\` text DEFAULT 'CURRENT_TIMESTAMP',
+  //     \`embedding\` vector(32)
+  //   );
+  // `)
 
-  // Create the unique index if it doesn't exist
-  await libsql.execute(`
-    CREATE UNIQUE INDEX IF NOT EXISTS \`setting_id_unique\` ON \`setting\` (\`id\`);
-  `)
+  // // Create the unique index if it doesn't exist
+  // await libsql.execute(`
+  //   CREATE UNIQUE INDEX IF NOT EXISTS \`setting_id_unique\` ON \`setting\` (\`id\`);
+  // `)
 
-  console.log('00000')
+  // console.log('00000')
 
-  await db.insert(settings).values([{ embedding: sql`vector32(${JSON.stringify([1.1, 2.2, 3.3])})` }])
+  // await db.insert(settings).values([{ embedding: sql`vector32(${JSON.stringify([1.1, 2.2, 3.3])})` }])
 
-  console.log('aaaa')
+  // console.log('aaaa')
 
-  const res = await db
-    .select({
-      id: settings.id,
-      distance: sql<number>`vector_distance_cos(${settings.embedding}, vector32(${JSON.stringify([2.2, 3.3, 4.4])}))`,
-    })
-    .from(settings)
+  // const res = await db
+  //   .select({
+  //     id: settings.id,
+  //     distance: sql<number>`vector_distance_cos(${settings.embedding}, vector32(${JSON.stringify([2.2, 3.3, 4.4])}))`,
+  //   })
+  //   .from(settings)
 
-  console.log('bbbb')
+  // console.log('bbbb')
 
-  console.log(res)
+  // console.log(res)
 }
 
 export default function App({ children }: { children?: JSXElement }) {
