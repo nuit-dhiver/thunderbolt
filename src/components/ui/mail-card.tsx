@@ -22,7 +22,7 @@ export function MailCard(props: MailCardProps) {
 
   return (
     <div className={`bg-white dark:bg-gray-800 ${props.isContentVisible ? 'border-green-500' : 'border-gray-200 dark:border-gray-700'} border rounded-md ${props.className ?? ''}`}>
-      <div className={`p-4 border-b border-gray-200 cursor-pointer`} onClick={handleToggle}>
+      <div className={`p-4  cursor-pointer`} onClick={handleToggle}>
         <div className="flex justify-between items-start">
           <div className="flex-1">
             {props.from && (
@@ -43,6 +43,7 @@ export function MailCard(props: MailCardProps) {
           <div className="flex items-center">{props.date && <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{props.date}</div>}</div>
         </div>
       </div>
+      {props.isContentVisible && <div className="h-px bg-gray-200 dark:bg-gray-700" />}
 
       <div
         style={{
