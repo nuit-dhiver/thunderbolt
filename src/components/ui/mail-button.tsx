@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
-interface ChatNavButtonProps extends React.HTMLAttributes<HTMLDivElement> {
-  chatTitle: string
+interface MailButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+  mailTitle: string
 }
 
-export function ChatNavButton({ chatTitle, className, ...props }: ChatNavButtonProps) {
+export function MailButton({ mailTitle, className, ...props }: MailButtonProps) {
   return (
     <div className={cn('relative w-full', className)} {...props}>
       <Popover>
@@ -17,7 +17,7 @@ export function ChatNavButton({ chatTitle, className, ...props }: ChatNavButtonP
           <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 group w-full">
             <div className="flex items-center gap-2">
               <div className="hidden md:block text-left">
-                <p className="text-sm font-base">{chatTitle}</p>
+                <p className="text-sm font-base">{mailTitle}</p>
               </div>
             </div>
             <Ellipsis className="size-4 text-muted-foreground transition-transform group-hover:opacity-100 opacity-0 ml-auto" />

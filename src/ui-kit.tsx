@@ -79,7 +79,7 @@ export default function UiKitPage() {
               <Link to="/settings/models">Models</Link>
             </Button>
           </div>
-          <ChatNavButton />
+          <ChatNavButton chatTitle="Chat Title Display" />
 
           <UserNavButton />
         </div>
