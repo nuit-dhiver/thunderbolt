@@ -1,5 +1,7 @@
 import type { UseChatHelpers } from '@ai-sdk/react'
+import { ArrowUp, Mic, Plus } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { Button } from '../ui/button'
 import { AgentToolResponse } from './agent-tool-response'
 
 interface ChatUIProps {
@@ -55,12 +57,15 @@ export default function ChatUI({ chatHelpers }: ChatUIProps) {
             placeholder="Say something..."
             className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
-          <button
-            type="submit"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            Send
-          </button>
+          <Button variant="outline" className="h-10 w-10 rounded-full p-0 flex items-center justify-center">
+            <Plus className="size-4" />
+          </Button>
+          <Button variant="outline" className="h-10 w-10 rounded-full p-0 flex items-center justify-center">
+            <Mic className="size-4" />
+          </Button>
+          <Button type="submit" variant="default" className="h-10 w-10 rounded-full p-0 flex items-center justify-center">
+            <ArrowUp className="size-4" />
+          </Button>
         </form>
       </div>
     </div>
