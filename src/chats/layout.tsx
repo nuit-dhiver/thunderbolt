@@ -44,48 +44,50 @@ export function ChatLayout() {
         <SidebarTrigger />
       </div>
       <Sidebar>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={createNewChat}>
-                    <span>New Chat</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link to="/ui-kit">
-                      <span>UI Kit</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link to="/devtools">
-                      <span>Dev Tools</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {chatThreads.map((thread) => (
-                  <SidebarMenuItem key={thread.id}>
-                    <ChatNavButton chatTitle={thread.title ?? 'New Chat'} threadId={thread.id} />
+        <SidebarContent className="flex flex-col h-full">
+          <div className="flex-1">
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton onClick={createNewChat}>
+                      <span>New Chat</span>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
 
-          <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link to="/ui-kit">
+                        <span>UI Kit</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link to="/devtools">
+                        <span>Dev Tools</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {chatThreads.map((thread) => (
+                    <SidebarMenuItem key={thread.id}>
+                      <ChatNavButton chatTitle={thread.title ?? 'New Chat'} threadId={thread.id} />
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+
+          <SidebarMenu className="mt-auto">
             <SidebarMenuItem>
               <UserNavButton />
             </SidebarMenuItem>
