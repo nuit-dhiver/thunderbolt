@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
@@ -43,10 +54,24 @@ export function ChatNavButton({ chatTitle, threadId, className, asChild = false,
               <PopoverContent className="w-56 p-0" onClick={(e) => e.stopPropagation()}>
                 <div className="py-1 px-2">
                   <div className="mt-1 md:mt-0">
-                    <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive">
-                      <Trash2 className="size-4 mr-2" />
-                      Delete
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive">
+                          <Trash2 className="size-4 mr-2" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete chat?</AlertDialogTitle>
+                          <AlertDialogDescription>This action cannot be undone. This will permanently delete this chat and all its messages.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </PopoverContent>
