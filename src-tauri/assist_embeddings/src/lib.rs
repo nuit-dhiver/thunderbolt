@@ -1,7 +1,6 @@
 use anyhow::Result;
 use libsql::{Connection, Value};
 use serde::{Deserialize, Serialize};
-use serde_json;
 
 // Make the embedding module public so it can be used in examples
 pub mod embedding;
@@ -40,7 +39,12 @@ pub async fn generate_batch(conn: &Connection, count: usize) -> Result<usize> {
 
     for (id, text_body) in messages {
         let embedding = get_embedding(&text_body)?;
-        let embedding_json = serde_json::to_string(&embedding)?;
+
+        // Convert Vec<f32> to binary data
+        let embedding_bytes: Vec<u8> = embedding
+            .iter()
+            .flat_map(|&val| val.to_le_bytes().to_vec())
+            .collect();
 
         // Prepare the upsert statement for embeddings
         let upsert_query = r#"
@@ -59,7 +63,7 @@ pub async fn generate_batch(conn: &Connection, count: usize) -> Result<usize> {
         let params = vec![
             Value::Text(embedding_id),
             Value::Text(id),
-            Value::Text(embedding_json),
+            Value::Blob(embedding_bytes),
         ];
         stmt.execute(params).await?;
 

@@ -4,18 +4,12 @@ use candle_core as candle;
 use candle_nn::VarBuilder;
 use candle_transformers::models::jina_bert::{BertModel, Config, PositionEmbeddingType};
 use hf_hub::{api::sync::Api, Repo, RepoType};
-use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
 pub struct Embedder {
     model: BertModel,
     tokenizer: tokenizers::Tokenizer,
     device: candle::Device,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct SerializableEmbedding {
-    pub values: Vec<f32>,
 }
 
 static EMBEDDER: OnceLock<Embedder> = OnceLock::new();
@@ -90,14 +84,12 @@ impl Embedder {
     }
 }
 
-pub fn get_embedding(text: &str) -> anyhow::Result<SerializableEmbedding> {
+pub fn get_embedding(text: &str) -> anyhow::Result<Vec<f32>> {
     let embedder = EMBEDDER.get_or_init(|| Embedder::new().unwrap());
     let tensor = embedder.get_embedding(text)?;
 
-    // Convert tensor to SerializableEmbedding (should always succeed now)
-    let values = tensor.to_vec1()?;
-
-    Ok(SerializableEmbedding { values })
+    // Convert tensor to Vec<f32> and map the error type to anyhow
+    tensor.to_vec1().map_err(|e| anyhow::Error::new(e))
 }
 
 fn normalize_l2(v: &Tensor) -> candle::Result<Tensor> {

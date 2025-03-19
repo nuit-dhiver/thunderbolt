@@ -14,10 +14,10 @@ async fn test_embedding_generation() -> Result<()> {
 
     println!(
         "Successfully generated embedding with {} dimensions",
-        embedding.values.len()
+        embedding.len()
     );
     // Print first few values of the embedding
-    let preview: Vec<f32> = embedding.values.iter().take(5).cloned().collect();
+    let preview: Vec<f32> = embedding.iter().take(5).cloned().collect();
     println!("First few values: {:?}", preview);
 
     Ok(())

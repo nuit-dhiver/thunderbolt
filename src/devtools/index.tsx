@@ -1,6 +1,7 @@
 import GenerateEmbeddingsSection from './generate-embeddings'
 import ImapMailboxesSection from './imap-mailboxes-section'
 import ImapSyncSection from './imap-sync-section'
+import SearchSection from './search'
 
 export default function DevToolsPage() {
   return (
@@ -13,6 +14,7 @@ export default function DevToolsPage() {
           <ImapSyncSection />
           <ImapMailboxesSection />
           <GenerateEmbeddingsSection />
+          <SearchSection />
         </div>
       </div>
     </>

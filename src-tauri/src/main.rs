@@ -239,6 +239,16 @@ async fn generate_embeddings(
         .map_err(|e| format!("Failed to generate embeddings: {}", e))
 }
 
+#[command]
+async fn get_embedding(text: String) -> Result<serde_json::Value, String> {
+    // Get embedding for the provided text
+    let embedding = assist_embeddings::embedding::get_embedding(&text)
+        .map_err(|e| format!("Failed to generate embedding: {}", e))?;
+
+    // Convert Vec<f32> to JSON array
+    serde_json::to_value(embedding).map_err(|e| format!("Failed to serialize embedding: {}", e))
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // This should be called as early in the execution of the app as possible
@@ -263,7 +273,8 @@ async fn main() -> Result<()> {
             fetch_inbox,
             list_mailboxes,
             sync_mailbox,
-            generate_embeddings
+            generate_embeddings,
+            get_embedding
         ]);
 
     #[cfg(debug_assertions)]
