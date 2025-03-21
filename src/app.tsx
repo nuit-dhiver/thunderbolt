@@ -7,6 +7,7 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import AccountsSettingsPage from '@/settings/accounts'
 import Settings from '@/settings/index'
 import ModelsSettingsPage from '@/settings/models'
+import { sql } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import ChatNewPage from './chats/new'
 import { getSettings } from './dal'
@@ -29,17 +30,17 @@ import UiKitPage from './ui-kit'
 const queryClient = new QueryClient()
 
 const init = async (): Promise<InitData> => {
-  createAppDataDir()
+  const appDataDirPath = await createAppDataDir()
 
-  const { db, sqlite } = await initializeDrizzleDatabase()
+  const { db, sqlite } = await initializeDrizzleDatabase(`${appDataDirPath}/local.db`)
 
   await migrate({ sqlite })
-
+  console.log('Recreating embeddings index')
   // This is done via migration but I'm putting it here just in case we reset the migrations.
-  // await db.run(sql`
-  //   DROP INDEX IF EXISTS embeddings_test_index;
-  //   CREATE INDEX IF NOT EXISTS embeddings_test_index ON embeddings (libsql_vector_idx(embedding));
-  // `)
+  await db.run(sql`
+    DROP INDEX IF EXISTS embeddings_test_index;
+    CREATE INDEX IF NOT EXISTS embeddings_test_index ON embeddings (libsql_vector_idx(embedding));
+  `)
 
   const settings = (await getSettings<SettingsType>(db, 'main')) || {}
 

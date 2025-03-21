@@ -10,4 +10,6 @@ export const createAppDataDir = async () => {
   } catch (error) {
     console.error('Failed to create app data directory:', error)
   }
+
+  return appDataDirPath
 }

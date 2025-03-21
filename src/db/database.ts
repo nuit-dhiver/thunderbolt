@@ -10,11 +10,11 @@ export type SelectQueryResult = {
   [key: string]: any
 }
 
-export const initializeDrizzleDatabase = async () => {
+export const initializeDrizzleDatabase = async (path: string) => {
   /**
    * Loads the sqlite database via the Tauri Proxy.
    */
-  const sqlite = await Database.load('data/local.db')
+  const sqlite = await Database.load(path)
 
   /**
    * The drizzle database instance.

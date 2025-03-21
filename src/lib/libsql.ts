@@ -44,6 +44,7 @@ export default class Database {
    * ```
    */
   static async load(path: string, encryptionKey?: string): Promise<Database> {
+    console.log('load', path, encryptionKey)
     const _path = await invoke<string>('init_libsql', {
       path,
       encryptionKey,
