@@ -3,7 +3,7 @@ import { DrizzleContextType } from '@/types'
 import { count, eq, sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 import { threadAsText } from './as-text'
-import { generateEmbeddings } from './embeddings'
+import { generateEmbeddingsCloud } from './embeddings'
 
 export class Indexer {
   private db: DrizzleContextType['db']
@@ -77,7 +77,7 @@ export class Indexer {
     console.log(texts)
 
     const startTime = performance.now()
-    const embeddings = await generateEmbeddings(texts)
+    const embeddings = await generateEmbeddingsCloud(texts)
     const endTime = performance.now()
 
     const embeddingTime = endTime - startTime

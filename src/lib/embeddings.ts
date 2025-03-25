@@ -18,7 +18,7 @@ export async function initEmbedder(): Promise<void> {
 
 /**
  * Generates embeddings for email messages in the database
- * @param batchSize The number of messages to process in each batch
+ * @param texts The texts to generate embeddings for
  * @returns A promise that resolves with the generated embeddings
  */
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
@@ -26,6 +26,32 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     return await invoke('generate_embeddings', { texts })
   } catch (error) {
     console.error('Failed to generate embeddings:', error)
+    throw error
+  }
+}
+
+/**
+ * Generates embeddings for email messages in the database using Hugging Face API
+ * @param texts The texts to generate embeddings for
+ * @returns A promise that resolves with the generated embeddings
+ */
+export async function generateEmbeddingsCloud(texts: string[]): Promise<number[][]> {
+  try {
+    const response = await fetch('https://router.huggingface.co/hf-inference/pipeline/feature-extraction/intfloat/e5-small-v2', {
+      headers: {
+        Authorization: 'Bearer LOL_OOPS',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        inputs: texts,
+      }),
+    })
+
+    const embeddings = await response.json()
+    return embeddings
+  } catch (error) {
+    console.error('Failed to generate embeddings from Hugging Face:', error)
     throw error
   }
 }

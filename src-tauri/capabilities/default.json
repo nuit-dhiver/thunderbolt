@@ -19,6 +19,9 @@
         },
         {
           "url": "https://api.openai.com"
+        },
+        {
+          "url": "https://router.huggingface.co"
         }
       ]
     },
