@@ -1,15 +1,10 @@
-import { SaveMessagesFunction } from '@/types'
+import { Model, SaveMessagesFunction } from '@/types'
+import { createFireworks } from '@ai-sdk/fireworks'
 import { createOpenAI } from '@ai-sdk/openai'
-import { appendResponseMessages, Message, streamText, ToolInvocation } from 'ai'
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+import { appendResponseMessages, LanguageModelV1, Message, streamText, ToolInvocation } from 'ai'
 import { v7 as uuidv7 } from 'uuid'
 import { toolset } from './ai-tools'
-// @todo replace with the actual message type
-export type EmailMessage = {
-  id: string
-  subject: string
-  snippet: string
-  clean_text: string
-}
 
 export type ToolInvocationWithResult<T = object> = ToolInvocation & {
   result: T
@@ -68,21 +63,60 @@ export const ollama = createOpenAI({
 })
 
 type AiFetchStreamingResponseOptions = {
-  apiKey: string
   init: RequestInit
   saveMessages: SaveMessagesFunction
+  model: Model
 }
 
-export const aiFetchStreamingResponse = async ({ apiKey, init, saveMessages }: AiFetchStreamingResponseOptions) => {
+export const createModel = (modelConfig: Model): LanguageModelV1 => {
+  switch (modelConfig.provider) {
+    case 'openai': {
+      if (!modelConfig.api_key) {
+        throw new Error('No API key provided')
+      }
+      const openai = createOpenAI({
+        apiKey: modelConfig.api_key,
+      })
+      const model = openai(modelConfig.model, {
+        structuredOutputs: true,
+      })
+
+      return model
+    }
+    case 'fireworks': {
+      if (!modelConfig.api_key) {
+        throw new Error('No API key provided')
+      }
+      const fireworks = createFireworks({
+        apiKey: modelConfig.api_key,
+      })
+
+      const model = fireworks(modelConfig.model)
+
+      return model as LanguageModelV1
+    }
+    case 'openai_compatible': {
+      if (!modelConfig.url) {
+        throw new Error('No URL provided')
+      }
+      console.log('Using config', modelConfig)
+      const openai = createOpenAICompatible({
+        name: 'custom',
+        baseURL: modelConfig.url,
+        apiKey: modelConfig.api_key ?? undefined,
+      })
+      return openai(modelConfig.model) as LanguageModelV1
+    }
+    default: {
+      throw new Error(`Unsupported model provider: ${modelConfig.provider}`)
+    }
+  }
+}
+
+export const aiFetchStreamingResponse = async ({ init, saveMessages, model: modelConfig }: AiFetchStreamingResponseOptions) => {
   // _requestInfoOrUrl is not used, but is required by fetch. The OpenAI wrapper handles the URL For us.
 
-  if (!apiKey) {
-    throw new Error('No API key provided')
-  }
-
-  const openai = createOpenAI({
-    apiKey,
-  })
+  const model = await createModel(modelConfig)
 
   const options = init as RequestInit & { body: string }
   const body = JSON.parse(options.body)
@@ -112,15 +146,15 @@ export const aiFetchStreamingResponse = async ({ apiKey, init, saveMessages }: A
     }),
   }))
 
+  console.log('Using model', modelConfig.provider, modelConfig.model)
+
   const result = streamText({
     maxSteps: 5,
     // Currently llama is able to call the search tool, but it does not call the answer tool afterwards - need to debug why.
     // model: ollama('llama3.2:3b-instruct-q4_1', {
     //   structuredOutputs: true,
     // }),
-    model: openai('gpt-4o', {
-      structuredOutputs: true,
-    }),
+    model,
     system: p2,
     messages: processedMessages,
     toolCallStreaming: true, // Causes issues because this results in incomplete result objects getting passed to React components. Experimentation to block rendering until the full objects are available is needed.

@@ -1,15 +1,20 @@
+import { Model } from '@/types'
 import type { UseChatHelpers } from '@ai-sdk/react'
 import { ArrowUp } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { AgentToolResponse } from './agent-tool-response'
 
 interface ChatUIProps {
   chatHelpers: UseChatHelpers
+  models: Model[]
+  selectedModel: string | null
+  onModelChange: (model: string | null) => void
 }
 
-export default function ChatUI({ chatHelpers }: ChatUIProps) {
+export default function ChatUI({ chatHelpers, models, selectedModel, onModelChange }: ChatUIProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -51,16 +56,24 @@ export default function ChatUI({ chatHelpers }: ChatUIProps) {
 
       <div className=" p-4">
         <form onSubmit={chatHelpers.handleSubmit} className="flex flex-col gap-2 bg-secondary p-4 rounded-md">
-          <Input variant="ghost" autoFocus value={chatHelpers.input} onChange={chatHelpers.handleInputChange} placeholder="Say something..." className="flex-1 px-4 py-2   " />
-          <div className="flex gap-2 justify-end">
-            {/* <div className="flex gap-2">
-              <Button variant="outline" className={`h-6 w-6 rounded-full flex items-center justify-center`}>
-                <Plus className="size-4" />
-              </Button>
-              <Button variant="outline" className={`h-6 w-6 rounded-full flex items-center justify-center`}>
-                <Mic className="size-4" />
-              </Button>
-            </div> */}
+          <Input variant="ghost" autoFocus value={chatHelpers.input} onChange={chatHelpers.handleInputChange} placeholder="Say something..." className="flex-1 px-4 py-2" />
+          <div className="flex gap-2 justify-end items-center w-full">
+            <Select value={selectedModel || ''} onValueChange={onModelChange}>
+              <SelectTrigger className="rounded-full" size="sm" variant="outline">
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent>
+                {models.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    <p className="text-left">
+                      {model.provider === 'openai' && 'OpenAI'}
+                      {model.provider === 'fireworks' && 'Fireworks'}
+                      {model.provider === 'openai_compatible' && 'OpenAI Compatible'} - {model.model}
+                    </p>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button type="submit" variant="default" className="h-6 w-6 rounded-full flex items-center justify-center">
               <ArrowUp className="size-4" />
             </Button>

@@ -1,18 +1,38 @@
 import ChatUI from '@/components/chat/chat-ui'
+import { useDrizzle } from '@/db/provider'
+import { modelsTable } from '@/db/schema'
 import { aiFetchStreamingResponse } from '@/lib/ai'
-import { SaveMessagesFunction } from '@/types'
+import { Model, SaveMessagesFunction } from '@/types'
 import { useChat } from '@ai-sdk/react'
+import { useQuery } from '@tanstack/react-query'
 import { Message } from 'ai'
+import { useEffect, useState } from 'react'
 import { v7 as uuidv7 } from 'uuid'
+
 interface ChatProps {
   id: string
-  apiKey: string
   initialMessages: Message[] | undefined
   maxSteps?: number
   saveMessages: SaveMessagesFunction
 }
 
-export default function Chat({ id, apiKey, initialMessages, maxSteps = 5, saveMessages }: ChatProps) {
+export default function Chat({ id, initialMessages, maxSteps = 5, saveMessages }: ChatProps) {
+  const [selectedModel, setSelectedModel] = useState<string | null>(null)
+  const { db } = useDrizzle()
+
+  const { data: models = [] } = useQuery<Model[]>({
+    queryKey: ['models'],
+    queryFn: async () => {
+      return await db.select().from(modelsTable)
+    },
+  })
+
+  useEffect(() => {
+    if (models.length > 0 && !selectedModel) {
+      setSelectedModel(models[0].id)
+    }
+  }, [models, selectedModel])
+
   const chatHelpers = useChat({
     id,
     initialMessages,
@@ -26,22 +46,24 @@ export default function Chat({ id, apiKey, initialMessages, maxSteps = 5, saveMe
     generateId: uuidv7,
 
     fetch: (_requestInfoOrUrl: RequestInfo | URL, init?: RequestInit) => {
-      if (!apiKey) {
-        throw new Error('No API key found')
-      }
-
       if (!init) {
         throw new Error('No init found')
       }
 
+      const model = models.find((model) => model.id === selectedModel)
+
+      if (!model) {
+        throw new Error('No model found')
+      }
+
       return aiFetchStreamingResponse({
-        apiKey,
         init,
         saveMessages,
+        model,
       })
     },
     maxSteps,
   })
 
-  return <ChatUI chatHelpers={chatHelpers} />
+  return <ChatUI chatHelpers={chatHelpers} models={models} selectedModel={selectedModel} onModelChange={setSelectedModel} />
 }

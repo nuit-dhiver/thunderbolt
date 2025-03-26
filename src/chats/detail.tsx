@@ -1,7 +1,6 @@
 import { useDrizzle } from '@/db/provider'
 import { chatMessagesTable } from '@/db/schema'
 import { convertDbChatMessageToMessage, convertMessageToDbChatMessage } from '@/lib/utils'
-import { useSettings } from '@/settings/provider'
 import { SaveMessagesFunction } from '@/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Message } from 'ai'
@@ -12,7 +11,6 @@ import Chat from './chat'
 export default function ChatDetailPage() {
   const params = useParams()
   const { db } = useDrizzle()
-  const settingsContext = useSettings()
   const queryClient = useQueryClient()
 
   const {
@@ -55,7 +53,7 @@ export default function ChatDetailPage() {
         ) : isError ? (
           <div>Error loading chat</div>
         ) : messages ? (
-          <Chat key={params.chatThreadId} id={params.chatThreadId} apiKey={settingsContext.settings.models?.openai_api_key!} initialMessages={messages} saveMessages={saveMessages} />
+          <Chat key={params.chatThreadId} id={params.chatThreadId} initialMessages={messages} saveMessages={saveMessages} />
         ) : (
           <div>Error loading chat</div>
         )}
