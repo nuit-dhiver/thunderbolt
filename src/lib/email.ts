@@ -1,4 +1,4 @@
-import { emailMessagesTable, emailThreadsTable } from '@/db/schema'
+import { emailMessagesTable, emailThreadsTable } from '@/db/tables'
 import { DrizzleContextType, EmailMessage, EmailThread } from '@/types'
 import { eq, sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
@@ -9,7 +9,7 @@ import { v7 as uuidv7 } from 'uuid'
  * @returns An array of reference message IDs
  */
 function extractReferences(email: EmailMessage): string[] {
-  const [part] = email.parts.parts
+  const [part] = email.parts?.parts ?? []
   const headers = part.headers
   const references = headers?.find((header) => header.name === 'references' && header.value && header.value.TextList)?.value?.TextList ?? []
   return references

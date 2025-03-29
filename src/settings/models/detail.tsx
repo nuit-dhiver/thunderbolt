@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useDrizzle } from '@/db/provider'
-import { modelsTable } from '@/db/schema'
+import { modelsTable } from '@/db/tables'
 import { Model } from '@/types'
 import { Trash2 } from 'lucide-react'
 

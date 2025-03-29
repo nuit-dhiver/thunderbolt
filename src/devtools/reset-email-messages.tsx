@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDrizzle } from '@/db/provider'
-import { emailThreadsTable, embeddingsTable } from '@/db/schema'
+import { emailThreadsTable, embeddingsTable } from '@/db/tables'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 

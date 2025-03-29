@@ -1,5 +1,5 @@
 import { useDrizzle } from '@/db/provider'
-import { chatMessagesTable } from '@/db/schema'
+import { chatMessagesTable } from '@/db/tables'
 import { convertDbChatMessageToMessage, convertMessageToDbChatMessage } from '@/lib/utils'
 import { SaveMessagesFunction } from '@/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'

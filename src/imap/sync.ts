@@ -1,4 +1,4 @@
-import { emailAddressesTable, emailMessagesTable, emailMessagesToAddressesTable, emailThreadsTable } from '@/db/schema'
+import { emailAddressesTable, emailMessagesTable, emailMessagesToAddressesTable, emailThreadsTable } from '@/db/tables'
 import { DrizzleContextType, ImapEmailMessage, ParsedEmail } from '@/types'
 import { count, eq, sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'

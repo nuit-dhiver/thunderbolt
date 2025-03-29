@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
-import { emailMessagesTable, emailThreadsTable, modelsTable, settingsTable } from './db/schema'
-import { DrizzleContextType, EmailThreadWithMessages } from './types'
+import { emailMessagesTable, emailThreadsTable, modelsTable, settingsTable } from './db/tables'
+import { DrizzleContextType, EmailThreadWithMessagesAndAddresses } from './types'
 
 export const setSettings = async (db: DrizzleContextType['db'], key: string, value: any) => {
   await db
@@ -42,16 +42,27 @@ export const seedModels = async (db: DrizzleContextType['db']) => {
   }
 }
 
-export const getEmailThreadByIdWithMessages = async (db: DrizzleContextType['db'], emailThreadId: string): Promise<EmailThreadWithMessages | null> => {
+export const getEmailThreadByIdWithMessages = async (db: DrizzleContextType['db'], emailThreadId: string): Promise<EmailThreadWithMessagesAndAddresses | null> => {
   const thread = await db.select().from(emailThreadsTable).where(eq(emailThreadsTable.id, emailThreadId)).get()
 
   if (!thread) return null
 
-  const messages = await db.select().from(emailMessagesTable).where(eq(emailMessagesTable.emailThreadId, emailThreadId))
+  const messages = await db.query.emailMessagesTable.findMany({
+    where: eq(emailMessagesTable.emailThreadId, emailThreadId),
+    with: {
+      sender: true,
+      recipients: {
+        with: {
+          address: true,
+        },
+      },
+    },
+    orderBy: (messages, { asc }) => [asc(messages.sentAt)],
+  })
   return { ...thread, messages }
 }
 
-export const getEmailThreadByMessageImapIdWithMessages = async (db: DrizzleContextType['db'], imapId: string): Promise<EmailThreadWithMessages | null> => {
+export const getEmailThreadByMessageImapIdWithMessages = async (db: DrizzleContextType['db'], imapId: string): Promise<EmailThreadWithMessagesAndAddresses | null> => {
   const message = await db.select().from(emailMessagesTable).where(eq(emailMessagesTable.imapId, imapId)).get()
 
   if (!message || !message.emailThreadId) return null
@@ -60,12 +71,23 @@ export const getEmailThreadByMessageImapIdWithMessages = async (db: DrizzleConte
 
   if (!thread) return null
 
-  const messages = await db.select().from(emailMessagesTable).where(eq(emailMessagesTable.emailThreadId, thread.id))
+  const messages = await db.query.emailMessagesTable.findMany({
+    where: eq(emailMessagesTable.emailThreadId, thread.id),
+    with: {
+      sender: true,
+      recipients: {
+        with: {
+          address: true,
+        },
+      },
+    },
+    orderBy: (messages, { asc }) => [asc(messages.sentAt)],
+  })
 
   return { ...thread, messages }
 }
 
-export const getEmailThreadByMessageIdWithMessages = async (db: DrizzleContextType['db'], emailMessageId: string): Promise<EmailThreadWithMessages | null> => {
+export const getEmailThreadByMessageIdWithMessages = async (db: DrizzleContextType['db'], emailMessageId: string): Promise<EmailThreadWithMessagesAndAddresses | null> => {
   const message = await db.select().from(emailMessagesTable).where(eq(emailMessagesTable.id, emailMessageId)).get()
 
   if (!message || !message.emailThreadId) return null
@@ -74,7 +96,18 @@ export const getEmailThreadByMessageIdWithMessages = async (db: DrizzleContextTy
 
   if (!thread) return null
 
-  const messages = await db.select().from(emailMessagesTable).where(eq(emailMessagesTable.emailThreadId, thread.id))
+  const messages = await db.query.emailMessagesTable.findMany({
+    where: eq(emailMessagesTable.emailThreadId, thread.id),
+    with: {
+      sender: true,
+      recipients: {
+        with: {
+          address: true,
+        },
+      },
+    },
+    orderBy: (messages, { asc }) => [asc(messages.sentAt)],
+  })
 
   return { ...thread, messages }
 }

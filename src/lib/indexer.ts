@@ -1,4 +1,4 @@
-import { emailMessagesTable, emailThreadsTable, embeddingsTable } from '@/db/schema'
+import { emailMessagesTable, emailThreadsTable, embeddingsTable } from '@/db/tables'
 import { DrizzleContextType } from '@/types'
 import { count, eq, sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'

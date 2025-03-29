@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDrizzle } from '@/db/provider'
-import { emailMessagesTable } from '@/db/schema'
+import { emailMessagesTable } from '@/db/tables'
 import { EmailThreader } from '@/lib/email'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@radix-ui/react-accordion'
 import { count, sql } from 'drizzle-orm'

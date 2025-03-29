@@ -4,7 +4,19 @@ import { Window } from '@tauri-apps/api/window'
 import { InferSelectModel } from 'drizzle-orm'
 import { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import * as schema from './db/schema'
-import { chatMessagesTable, chatThreadsTable, emailMessagesTable, emailThreadsTable, embeddingsTable, modelsTable, settingsTable, todosTable } from './db/schema'
+import {
+  chatMessagesTable,
+  chatThreadsTable,
+  contactsTable,
+  emailAddressesTable,
+  emailMessagesTable,
+  emailMessagesToAddressesTable,
+  emailThreadsTable,
+  embeddingsTable,
+  modelsTable,
+  settingsTable,
+  todosTable,
+} from './db/tables'
 import ImapClient from './imap/imap'
 import Database from './lib/libsql'
 import { ImapSyncClient } from './sync'
@@ -54,12 +66,22 @@ export type ChatThread = InferSelectModel<typeof chatThreadsTable>
 export type Setting = InferSelectModel<typeof settingsTable>
 export type EmailMessage = InferSelectModel<typeof emailMessagesTable>
 export type EmailThread = InferSelectModel<typeof emailThreadsTable>
+export type EmailAddress = InferSelectModel<typeof emailAddressesTable>
+export type EmailMessageToAddress = InferSelectModel<typeof emailMessagesToAddressesTable>
 export type Embedding = InferSelectModel<typeof embeddingsTable>
 export type Model = InferSelectModel<typeof modelsTable>
 export type Todo = InferSelectModel<typeof todosTable>
+export type Contact = InferSelectModel<typeof contactsTable>
 
-export type EmailThreadWithMessages = EmailThread & {
-  messages: EmailMessage[]
+export type EmailMessageWithAddresses = EmailMessage & {
+  sender: EmailAddress
+  recipients: (EmailMessageToAddress & {
+    address: EmailAddress
+  })[]
+}
+
+export type EmailThreadWithMessagesAndAddresses = EmailThread & {
+  messages: EmailMessageWithAddresses[]
 }
 
 export type ParsedEmail = {

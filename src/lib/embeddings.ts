@@ -1,4 +1,4 @@
-import { emailMessagesTable, emailThreadsTable, embeddingsTable } from '@/db/schema'
+import { emailMessagesTable, emailThreadsTable, embeddingsTable } from '@/db/tables'
 import { DrizzleContextType } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
 import { eq, isNotNull, sql } from 'drizzle-orm'

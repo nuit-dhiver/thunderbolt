@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDrizzle } from '@/db/provider'
-import { emailMessagesTable } from '@/db/schema'
+import { emailMessagesTable } from '@/db/tables'
 import { getEmbedding } from '@/lib/embeddings'
 import { EmailMessage } from '@/types'
 import { useEffect, useRef, useState } from 'react'

@@ -38,24 +38,28 @@ CREATE TABLE `email_messages` (
 	`imap_id` text NOT NULL,
 	`html_body` text NOT NULL,
 	`text_body` text NOT NULL,
-	`parts` text NOT NULL,
+	`parts` text,
 	`subject` text,
 	`sent_at` integer NOT NULL,
-	`from_address` text,
-	`from_contact_id` text,
-	`to_address` text,
-	`to_contact_id` text,
-	`in_reply_to` text,
-	`email_thread_id` text,
-	FOREIGN KEY (`from_address`) REFERENCES `email_addresses`(`address`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`from_contact_id`) REFERENCES `contacts`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`to_address`) REFERENCES `email_addresses`(`address`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`to_contact_id`) REFERENCES `contacts`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`email_thread_id`) REFERENCES `email_threads`(`id`) ON UPDATE cascade ON DELETE set null
+	`from_address` text NOT NULL,
+	`email_thread_id` text NOT NULL,
+	`mailbox` text NOT NULL,
+	`references` text,
+	FOREIGN KEY (`from_address`) REFERENCES `email_addresses`(`address`) ON UPDATE cascade ON DELETE restrict,
+	FOREIGN KEY (`email_thread_id`) REFERENCES `email_threads`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `email_messages_id_unique` ON `email_messages` (`id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `email_messages_imapId_unique` ON `email_messages` (`imap_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `email_messages_imap_id_unique` ON `email_messages` (`imap_id`);--> statement-breakpoint
+CREATE TABLE `email_messages_to_addresses` (
+	`email_message_id` text NOT NULL,
+	`email_address_id` text NOT NULL,
+	`type` text NOT NULL,
+	PRIMARY KEY(`email_message_id`, `email_address_id`),
+	FOREIGN KEY (`email_message_id`) REFERENCES `email_messages`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`email_address_id`) REFERENCES `email_addresses`(`address`) ON UPDATE cascade ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `email_threads` (
 	`id` text PRIMARY KEY NOT NULL,
 	`subject` text NOT NULL,
@@ -76,8 +80,8 @@ CREATE TABLE `embeddings` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `embeddings_id_unique` ON `embeddings` (`id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `embeddings_emailMessageId_unique` ON `embeddings` (`email_message_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `embeddings_emailThreadId_unique` ON `embeddings` (`email_thread_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `embeddings_email_message_id_unique` ON `embeddings` (`email_message_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `embeddings_email_thread_id_unique` ON `embeddings` (`email_thread_id`);--> statement-breakpoint
 CREATE TABLE `models` (
 	`id` text PRIMARY KEY NOT NULL,
 	`provider` text NOT NULL,
@@ -97,7 +101,9 @@ CREATE TABLE `settings` (
 CREATE TABLE `todos` (
 	`id` text PRIMARY KEY NOT NULL,
 	`item` text NOT NULL,
-	`imap_id` text
+	`email_message_id` text,
+	FOREIGN KEY (`email_message_id`) REFERENCES `email_messages`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `todos_id_unique` ON `todos` (`id`);
+CREATE UNIQUE INDEX `todos_id_unique` ON `todos` (`id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `todos_email_message_id_unique` ON `todos` (`email_message_id`);

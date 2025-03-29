@@ -1,6 +1,7 @@
 import { ChatMessage, ParsedEmail, ParsedEmailHeader } from '@/types'
 import { Message } from 'ai'
 import { clsx, type ClassValue } from 'clsx'
+import dayjs from 'dayjs'
 import { twMerge } from 'tailwind-merge'
 import { CamelCasedProperties, CamelCasedPropertiesDeep, SnakeCasedProperties, SnakeCasedPropertiesDeep } from 'type-fest'
 
@@ -158,4 +159,19 @@ export function camelCasedPropertiesDeep<T extends Record<string, any>>(obj: T):
   }
 
   return result as CamelCasedPropertiesDeep<T>
+}
+
+export function formatDate(timestamp: number): string {
+  const d = dayjs(timestamp)
+  const now = dayjs()
+
+  if (d.isSame(now, 'day')) {
+    return d.format('HH:mm')
+  }
+
+  if (d.isSame(now, 'year')) {
+    return d.format('MMM D')
+  }
+
+  return d.format('MMM D, YYYY')
 }

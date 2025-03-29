@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useDrizzle } from '@/db/provider'
-import { modelsTable } from '@/db/schema'
+import { modelsTable } from '@/db/tables'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import React from 'react'

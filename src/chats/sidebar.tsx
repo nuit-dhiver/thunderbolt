@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { useDrizzle } from '@/db/provider'
-import { chatThreadsTable } from '@/db/schema'
+import { chatThreadsTable } from '@/db/tables'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { eq } from 'drizzle-orm'
 import { Loader2, MoreHorizontal, SquarePen } from 'lucide-react'

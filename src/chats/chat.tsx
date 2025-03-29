@@ -1,6 +1,6 @@
 import ChatUI from '@/components/chat/chat-ui'
 import { useDrizzle } from '@/db/provider'
-import { modelsTable } from '@/db/schema'
+import { modelsTable } from '@/db/tables'
 import { aiFetchStreamingResponse } from '@/lib/ai'
 import { Model, SaveMessagesFunction } from '@/types'
 import { useChat } from '@ai-sdk/react'

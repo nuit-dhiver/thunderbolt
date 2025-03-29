@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDrizzle } from '@/db/provider'
-import { emailMessagesTable, embeddingsTable } from '@/db/schema'
+import { emailMessagesTable, embeddingsTable } from '@/db/tables'
 import { generateBatch } from '@/lib/embeddings'
 import { count } from 'drizzle-orm'
 import { useEffect, useRef, useState } from 'react'

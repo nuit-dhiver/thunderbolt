@@ -11,7 +11,7 @@ import {
   modelsTable,
   settingsTable,
   todosTable,
-} from './schema'
+} from './tables'
 
 export const chatThreadsRelations = relations(chatThreadsTable, ({ many }) => ({
   messages: many(chatMessagesTable),
@@ -44,15 +44,15 @@ export const emailMessagesRelations = relations(emailMessagesTable, ({ one, many
     fields: [emailMessagesTable.emailThreadId],
     references: [emailThreadsTable.id],
   }),
-  fromEmailAddress: one(emailAddressesTable, {
+  sender: one(emailAddressesTable, {
     fields: [emailMessagesTable.fromAddress],
     references: [emailAddressesTable.address],
   }),
-  recipientEmailAddresses: many(emailMessagesToAddressesTable),
+  recipients: many(emailMessagesToAddressesTable),
 }))
 
 export const emailThreadsRelations = relations(emailThreadsTable, ({ many, one }) => ({
-  messages: many(emailMessagesTable),
+  emailMessages: many(emailMessagesTable),
   embedding: one(embeddingsTable, {
     fields: [emailThreadsTable.id],
     references: [embeddingsTable.emailThreadId],
