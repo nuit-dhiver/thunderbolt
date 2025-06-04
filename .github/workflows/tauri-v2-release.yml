@@ -46,10 +46,10 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - name: Install stable toolchain
+      - name: Install nightly toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           cache: true
 
       - name: install Linux dependencies
@@ -99,10 +99,10 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - name: Install stable toolchain
+      - name: Install nightly toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           cache: true
 
       - name: setup JDK 17
@@ -161,10 +161,10 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - name: Install stable toolchain
+      - name: Install nightly toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           cache: true
 
       - name: install iOS target
