@@ -24,9 +24,12 @@ serde = { version = "1.0.219", features = ["derive"] }
 thunderbolt-lib = { path = "." }
 
 [patch.crates-io]
-# Use the commit that fixes Windows build issue
-libsql = { git = "https://github.com/tursodatabase/libsql", rev = "64e2b05" }
-libsql-sys = { git = "https://github.com/tursodatabase/libsql", rev = "64e2b05" }
+# Use latest main branch which includes the Windows build fix where `to_str()` method
+# was not found for path types on non-Unix systems.
+# See: https://github.com/tursodatabase/libsql/pull/2048
+# Once libsql releases a version > 0.9.9 with this fix, this patch can be removed.
+libsql = { git = "https://github.com/tursodatabase/libsql", branch = "main" }
+libsql-sys = { git = "https://github.com/tursodatabase/libsql", branch = "main" }
 
 [[bin]]
 name = "thunderbolt"
