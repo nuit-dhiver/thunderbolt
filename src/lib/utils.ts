@@ -1,5 +1,5 @@
 import { ChatMessage, ParsedEmail, ParsedEmailHeader } from '@/types'
-import { UIMessage, UIMessagePart } from 'ai'
+import { UIMessage } from 'ai'
 import { clsx, type ClassValue } from 'clsx'
 import dayjs from 'dayjs'
 import { twMerge } from 'tailwind-merge'
@@ -16,7 +16,7 @@ export function uuidv7ToDate(uuid: string) {
 export function convertDbChatMessageToUIMessage(message: ChatMessage): UIMessage {
   return {
     id: message.id,
-    parts: message.parts ?? undefined,
+    parts: message.parts ?? [],
     role: message.role,
     metadata: {
       createdAt: uuidv7ToDate(message.id),
@@ -31,10 +31,6 @@ export function convertUIMessageToDbChatMessage(message: UIMessage, chatThreadId
     role: message.role,
     content: message.parts.map((part) => (part.type === 'text' ? part.text : '')).join(''),
     chatThreadId,
-
-    // @todo remove these
-    attachments: null,
-    annotations: null,
   }
 }
 

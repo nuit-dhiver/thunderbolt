@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useDrizzle } from '@/db/provider'
 import { emailMessagesTable } from '@/db/tables'
-import { getEmbeddings } from '@/lib/embeddings'
+// import { getEmbeddings } from '@/lib/embeddings'
 import { EmailMessage } from '@/types'
 import { useEffect, useRef, useState } from 'react'
 
@@ -63,7 +63,8 @@ export default function GenerateEmbeddingsOptimizedSection() {
     const startTime = performance.now()
 
     // Get embeddings for the batch
-    await getEmbeddings(textsToEmbed)
+    // await getEmbeddings(textsToEmbed)
+    // TODO: implement getEmbeddings
 
     const endTime = performance.now()
     const batchTime = endTime - startTime

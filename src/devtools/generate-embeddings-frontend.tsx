@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDrizzle } from '@/db/provider'
 import { emailMessagesTable, embeddingsTable } from '@/db/tables'
-import { generateBatch } from '@/lib/embeddings'
+// import { generateBatch } from '@/lib/embeddings'
 import { count } from 'drizzle-orm'
 import { useEffect, useRef, useState } from 'react'
 
@@ -43,7 +43,8 @@ export default function GenerateEmbeddingsFrontendSection() {
         setStatus(`Generating batch ${currentProgress.embeddings + 1} to ${Math.min(currentProgress.embeddings + batchSize, currentProgress.emails)}...`)
 
         // Process a batch
-        const processedCount = await generateBatch(batchSize)
+        // const processedCount = await generateBatch(batchSize)
+        const processedCount = 0 // TODO: implement generateBatch
 
         if (processedCount === 0) {
           // No more messages to process

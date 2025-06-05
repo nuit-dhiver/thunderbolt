@@ -24,7 +24,7 @@ export default function GenerateEmbeddingsSection() {
   const [totalEmbeddingTime, setTotalEmbeddingTime] = useState<number>(0)
   const [totalEmbeddingsProcessed, setTotalEmbeddingsProcessed] = useState<number>(0)
   const [maxBatchTime, setMaxBatchTime] = useState<number>(5000) // 5 seconds default
-  const [slowBatches, setSlowBatches] = useState<Array<{ batchNumber: number; time: number; emails: EmailMessage[] }>>([])
+  const [slowBatches] = useState<Array<{ batchNumber: number; time: number; emails: EmailMessage[] }>>([])
   const [currentOffset, setCurrentOffset] = useState<number>(0)
   const [slowThreads, setSlowThreads] = useState<string[]>([])
 

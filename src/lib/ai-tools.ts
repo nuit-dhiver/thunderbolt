@@ -11,7 +11,7 @@ type toolContext = {
 export const tools = {
   searchInbox: {
     verb: 'Searching the inbox...',
-    tool: ({ settings }: toolContext) =>
+    tool: ({ }: toolContext) =>
       tool({
         description: `A tool for searching the user's inbox.
 
@@ -59,7 +59,7 @@ export const tools = {
   },
   listMailboxes: {
     verb: 'Listing mailboxes...',
-    tool: ({ settings }: toolContext) =>
+    tool: ({ }: toolContext) =>
       tool({
         description: "List all mailboxes in the user's inbox.",
         parameters: z.object({}),

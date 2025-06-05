@@ -13,7 +13,6 @@ import { eq } from 'drizzle-orm'
 import { Plus } from 'lucide-react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 
 const formSchema = z.object({
@@ -37,26 +36,6 @@ export default function AccountsSettingsPage() {
     queryKey: ['accounts'],
     queryFn: async () => {
       return await db.select().from(accountsTable)
-    },
-  })
-
-  // Create account mutation
-  const createAccountMutation = useMutation({
-    mutationFn: async () => {
-      const id = uuidv7()
-      await db.insert(accountsTable).values({
-        id,
-        type: 'imap',
-        imapHostname: '',
-        imapPort: 993,
-        imapUsername: '',
-        imapPassword: '',
-      })
-      return id
-    },
-    onSuccess: (id) => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
-      setSelectedAccount(id)
     },
   })
 
@@ -147,7 +126,7 @@ export default function AccountsSettingsPage() {
 
         {accounts.length > 0 && (
           <Select value={selectedAccount || undefined} onValueChange={setSelectedAccount}>
-            <SelectTrigger className="w-full p-6 py-8" variant="outline">
+            <SelectTrigger className="w-full p-6 py-8">
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center bg-primary text-primary-foreground size-8 rounded-md font-medium">{currentAccount?.imapUsername?.[0]?.toUpperCase() || '?'}</div>
                 <div className="flex flex-col">

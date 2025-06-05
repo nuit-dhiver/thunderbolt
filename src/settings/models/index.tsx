@@ -51,7 +51,7 @@ const formSchema = z
     customModel: z.string().optional(),
     url: z.string().optional(),
     apiKey: z.string().optional(),
-    toolUsage: z.boolean().default(true),
+    toolUsage: z.boolean(),
   })
   .refine(
     (data) => {
@@ -144,7 +144,9 @@ export default function ModelsPage() {
     },
   })
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  type FormData = z.infer<typeof formSchema>
+  
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       provider: 'thunderbolt',

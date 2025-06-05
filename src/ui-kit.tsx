@@ -63,7 +63,7 @@ export default function UiKitPage() {
       <div className="flex flex-col gap-4 p-4 w-full">
         <h2 className="text-2xl font-bold mb-4">Select</h2>
         <Select>
-          <SelectTrigger variant="outline" size="lg">
+          <SelectTrigger>
             <SelectValue placeholder="Select a fruit" />
           </SelectTrigger>
           <SelectContent>
@@ -89,7 +89,7 @@ export default function UiKitPage() {
         <div className="h-px bg-gray-200 dark:bg-gray-700 my-10" />
         <h2 className="text-2xl font-bold mb-4">Button</h2>
         <Button variant="outline">Outline Button</Button>
-        <Button variant="file">
+        <Button variant="outline">
           <Paperclip className="size-5" />
           example.pdf
         </Button>
@@ -121,7 +121,7 @@ export default function UiKitPage() {
                 email.attachments.length > 0 && (
                   <>
                     {email.attachments.map((attachment) => (
-                      <Button key={attachment.filename} variant="file" asChild>
+                      <Button key={attachment.filename} variant="outline" asChild>
                         <a href={attachment.url} target="_blank" rel="noopener noreferrer">
                           <Paperclip className="size-5" />
                           {attachment.filename}

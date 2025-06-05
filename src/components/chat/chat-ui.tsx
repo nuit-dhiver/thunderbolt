@@ -144,7 +144,7 @@ export default function ChatUI({ chatHelpers, models, selectedModel, onModelChan
             })}
 
             {/* Show loading indicator when waiting for server response */}
-            {chatHelpers.status === 'submitted' && <ChatLoadingIndicator message="Thinking..." />}
+            {chatHelpers.status === 'submitted' && <ChatLoadingIndicator />}
 
             <div ref={scrollTargetRef} />
           </motion.div>

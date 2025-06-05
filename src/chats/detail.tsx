@@ -82,6 +82,7 @@ export default function ChatDetailPage() {
             apiKey: null,
             isSystem: 1,
             enabled: 1,
+            toolUsage: 0,
           })
 
           const { text } = await generateText({

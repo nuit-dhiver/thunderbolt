@@ -264,16 +264,6 @@ export default function McpServersPage() {
     }
   }
 
-  const handleToolToggle = (serverId: string, tool: string, checked: boolean) => {
-    setSelectedTools((prev) => ({
-      ...prev,
-      [serverId]: {
-        ...prev[serverId],
-        [tool]: checked,
-      },
-    }))
-  }
-
   const formatServerTitle = (url: string, serverId: string) => {
     try {
       const urlObj = new URL(url)

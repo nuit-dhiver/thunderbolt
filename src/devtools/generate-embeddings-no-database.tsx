@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDrizzle } from '@/db/provider'
 import { emailMessagesTable } from '@/db/tables'
-import { getEmbedding } from '@/lib/embeddings'
+// import { getEmbedding } from '@/lib/embeddings'
 import { EmailMessage } from '@/types'
 import { useEffect, useRef, useState } from 'react'
 
@@ -50,11 +50,12 @@ export default function GenerateEmbeddingsFrontendNoDatabaseSection() {
         setStatus(`Processing email ${i + 1} of ${emails.length}...`)
 
         // Get the text content to embed
-        const textToEmbed = email.text_body
+        const textToEmbed = email.textBody
 
         if (textToEmbed) {
           // Just get the embedding without saving to database
-          await getEmbedding(textToEmbed)
+          // await getEmbedding(textToEmbed)
+          // TODO: implement getEmbedding
           processed++
 
           setProgress({
