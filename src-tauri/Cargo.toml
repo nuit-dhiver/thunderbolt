@@ -82,7 +82,6 @@ incremental = true                              # Compile your binary in smaller
 "candle-nn" = { opt-level = 3, debug = false }
 "candle-core" = { opt-level = 3, debug = false }
 "candle-transformers" = { opt-level = 3, debug = false }
-# "mistralrs" = { opt-level = 3, debug = false }
 
 [profile.release]
 codegen-units = 1 # Allows LLVM to perform better optimization.
