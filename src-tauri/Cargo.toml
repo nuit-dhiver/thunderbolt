@@ -18,18 +18,12 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 members = ["thunderbolt_imap_client", "thunderbolt_imap_sync", "thunderbolt_embeddings", "thunderbolt_bridge"]
 
 [workspace.dependencies]
-libsql = { version = "0.9.9", default-features = false, features = ["core", "encryption"] }
+# Use Thunderbird's fork with Windows build fix
+# See: https://github.com/thunderbird/libsql/commit/91d0ff37dc37f2397b39662b0727b500a93fdb32
+libsql = { git = "https://github.com/thunderbird/libsql", branch = "main", default-features = false, features = ["core", "encryption"] }
 anyhow = "1.0.98"
 serde = { version = "1.0.219", features = ["derive"] }
 thunderbolt-lib = { path = "." }
-
-[patch.crates-io]
-# Use latest main branch which includes the Windows build fix where `to_str()` method
-# was not found for path types on non-Unix systems.
-# See: https://github.com/tursodatabase/libsql/pull/2048
-# Once libsql releases a version > 0.9.9 with this fix, this patch can be removed.
-libsql = { git = "https://github.com/tursodatabase/libsql", branch = "main" }
-libsql-sys = { git = "https://github.com/tursodatabase/libsql", branch = "main" }
 
 [[bin]]
 name = "thunderbolt"
@@ -66,7 +60,7 @@ keyring = { version = "3.6.2", features = [
     "sync-secret-service",
 ] }
 tauri-plugin-fs = "2.3.0"
-libsql = { version = "0.9.9", default-features = false, features = ["core", "encryption"] }
+libsql = { workspace = true }
 base64 = "0.22.1"
 bytes = "1.10.1"
 mail-parser = { version = "0.10.2", features = ["serde_support"] }

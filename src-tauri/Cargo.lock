@@ -590,9 +590,9 @@ checksum = "40e38929add23cdf8a366df9b0e088953150724bcbe5fc330b0d8eb3b328eec8"
 
 [[package]]
 name = "bumpalo"
-version = "3.18.0"
+version = "3.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1b094a32014c3d1f3944e4808e0e7c70e97dae0660886a8eb6dbc52d745badc"
+checksum = "793db76d6187cd04dff33004d8e6c9cc4e05cd330500379d2394209271b4aeee"
 
 [[package]]
 name = "bytemuck"
@@ -3325,7 +3325,7 @@ dependencies = [
 [[package]]
 name = "libsql"
 version = "0.9.9"
-source = "git+https://github.com/tursodatabase/libsql?branch=main#0ef59ff5659da8479b9be2cc67a9762d877a6114"
+source = "git+https://github.com/thunderbird/libsql?branch=main#91d0ff37dc37f2397b39662b0727b500a93fdb32"
 dependencies = [
  "async-trait",
  "bitflags 2.9.1",
@@ -3339,7 +3339,7 @@ dependencies = [
 [[package]]
 name = "libsql-ffi"
 version = "0.9.9"
-source = "git+https://github.com/tursodatabase/libsql?branch=main#0ef59ff5659da8479b9be2cc67a9762d877a6114"
+source = "git+https://github.com/thunderbird/libsql?branch=main#91d0ff37dc37f2397b39662b0727b500a93fdb32"
 dependencies = [
  "bindgen",
  "cc",
@@ -3349,7 +3349,7 @@ dependencies = [
 [[package]]
 name = "libsql-sys"
 version = "0.9.9"
-source = "git+https://github.com/tursodatabase/libsql?branch=main#0ef59ff5659da8479b9be2cc67a9762d877a6114"
+source = "git+https://github.com/thunderbird/libsql?branch=main#91d0ff37dc37f2397b39662b0727b500a93fdb32"
 dependencies = [
  "bytes",
  "libsql-ffi",
