@@ -264,7 +264,7 @@ class OpenMeteoWeather:
 
 
 # Initialize FastMCP server
-mcp = FastMCP("weather")
+mcp: FastMCP = FastMCP("weather")
 weather_client = OpenMeteoWeather()
 
 

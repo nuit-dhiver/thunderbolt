@@ -13,7 +13,7 @@ from proxy import ProxyConfig, ProxyService
 
 
 @pytest.mark.asyncio
-async def test_proxy_handles_httpx_auto_decompression():
+async def test_proxy_handles_httpx_auto_decompression() -> None:
     """Test that proxy correctly handles when httpx automatically decompresses brotli content."""
     # Create a proxy service
     proxy_service = ProxyService()
@@ -72,7 +72,7 @@ async def test_proxy_handles_httpx_auto_decompression():
 
 
 @pytest.mark.asyncio
-async def test_proxy_handles_actual_brotli_compression():
+async def test_proxy_handles_actual_brotli_compression() -> None:
     """Test that proxy correctly decompresses actual brotli-compressed content."""
     # Create a proxy service
     proxy_service = ProxyService()
@@ -132,7 +132,7 @@ async def test_proxy_handles_actual_brotli_compression():
 
 
 @pytest.mark.asyncio
-async def test_proxy_handles_gzip_compression():
+async def test_proxy_handles_gzip_compression() -> None:
     """Test that proxy correctly handles gzip compression."""
     # Create a proxy service
     proxy_service = ProxyService()
@@ -191,7 +191,7 @@ async def test_proxy_handles_gzip_compression():
         assert "content-encoding" not in response.headers
 
 
-def test_proxy_auth_required(client: TestClient):
+def test_proxy_auth_required(client: TestClient) -> None:
     """Test that proxy requires authentication when configured."""
     # When weather proxy is not configured, we should get 404
     response = client.get("/proxy/weather/current.json?q=London")
@@ -204,7 +204,7 @@ def test_proxy_auth_required(client: TestClient):
         assert response.json()["detail"] == "Proxy path not configured"
 
 
-def test_proxy_with_auth(client: TestClient):
+def test_proxy_with_auth(client: TestClient) -> None:
     """Test proxy with proper authentication."""
     # This would need proper mocking of the weather API response
     # For now, just test that auth header is accepted

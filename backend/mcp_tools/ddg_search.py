@@ -23,9 +23,9 @@ class SearchResult:
 class RateLimiter:
     def __init__(self, requests_per_minute: int = 30):
         self.requests_per_minute = requests_per_minute
-        self.requests = []
+        self.requests: list[datetime] = []
 
-    async def acquire(self):
+    async def acquire(self) -> None:
         now = datetime.now()
         # Remove requests older than 1 minute
         self.requests = [
@@ -47,7 +47,7 @@ class DuckDuckGoSearcher:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.rate_limiter = RateLimiter()
 
     def format_results_for_llm(self, results: list[SearchResult]) -> str:
@@ -94,7 +94,7 @@ class DuckDuckGoSearcher:
                 await ctx.error("Failed to parse HTML response")
                 return []
 
-            results = []
+            results: list[SearchResult] = []
             for result in soup.select(".result"):
                 title_elem = result.select_one(".result__title")
                 if not title_elem:
@@ -105,7 +105,15 @@ class DuckDuckGoSearcher:
                     continue
 
                 title = link_elem.get_text(strip=True)
-                link = link_elem.get("href", "")
+                # Check if element has get method (Tag) vs NavigableString
+                if hasattr(link_elem, "get"):
+                    link = link_elem.get("href", "")
+                else:
+                    continue
+
+                # Ensure link is a string
+                if not isinstance(link, str):
+                    continue
 
                 # Skip ad results
                 if "y.js" in link:
@@ -146,7 +154,7 @@ class DuckDuckGoSearcher:
 
 
 class WebContentFetcher:
-    def __init__(self):
+    def __init__(self) -> None:
         self.rate_limiter = RateLimiter(requests_per_minute=20)
 
     async def fetch_and_parse(self, url: str, ctx: Context) -> str:
@@ -206,7 +214,7 @@ class WebContentFetcher:
 
 
 # Initialize FastMCP server
-mcp = FastMCP("ddg-search")
+mcp: FastMCP = FastMCP("ddg-search")
 searcher = DuckDuckGoSearcher()
 fetcher = WebContentFetcher()
 

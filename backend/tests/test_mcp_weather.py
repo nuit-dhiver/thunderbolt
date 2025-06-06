@@ -1,5 +1,6 @@
 """Tests for MCP weather tools."""
 
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -17,7 +18,7 @@ class TestOpenMeteoWeather:
     """Test OpenMeteoWeather class methods."""
 
     @pytest.mark.asyncio
-    async def test_search_locations_success(self):
+    async def test_search_locations_success(self) -> None:
         """Test successful location search."""
         weather = OpenMeteoWeather()
         ctx = AsyncMock(spec=Context)
@@ -58,13 +59,13 @@ class TestOpenMeteoWeather:
             ctx.info.assert_called()
 
     @pytest.mark.asyncio
-    async def test_search_locations_no_results(self):
+    async def test_search_locations_no_results(self) -> None:
         """Test location search with no results."""
         weather = OpenMeteoWeather()
         ctx = AsyncMock(spec=Context)
 
         # Mock empty response
-        mock_response = {"results": []}
+        mock_response: dict[str, Any] = {"results": []}
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_response_obj = MagicMock()
@@ -81,7 +82,7 @@ class TestOpenMeteoWeather:
             ctx.info.assert_called_with("No locations found matching: InvalidLocation")
 
     @pytest.mark.asyncio
-    async def test_get_current_weather_success(self):
+    async def test_get_current_weather_success(self) -> None:
         """Test successful current weather retrieval by coordinates."""
         weather = OpenMeteoWeather()
         ctx = AsyncMock(spec=Context)
@@ -121,7 +122,7 @@ class TestOpenMeteoWeather:
             assert "Wind: 12.5 km/h from SW" in result
 
     @pytest.mark.asyncio
-    async def test_get_weather_forecast_success(self):
+    async def test_get_weather_forecast_success(self) -> None:
         """Test successful weather forecast retrieval by coordinates."""
         weather = OpenMeteoWeather()
         ctx = AsyncMock(spec=Context)
@@ -160,7 +161,7 @@ class TestOpenMeteoWeather:
             assert "Precipitation: 5.2 mm (probability: 80%)" in result
 
     @pytest.mark.asyncio
-    async def test_get_weather_forecast_invalid_days(self):
+    async def test_get_weather_forecast_invalid_days(self) -> None:
         """Test forecast with invalid days parameter."""
         weather = OpenMeteoWeather()
         ctx = AsyncMock(spec=Context)
@@ -171,7 +172,7 @@ class TestOpenMeteoWeather:
         result = await weather.get_weather_forecast(51.5074, -0.1278, 0, ctx)
         assert result == "Error: Days parameter must be between 1 and 16"
 
-    def test_weather_description_mapping(self):
+    def test_weather_description_mapping(self) -> None:
         """Test weather code to description mapping."""
         weather = OpenMeteoWeather()
 
@@ -181,7 +182,7 @@ class TestOpenMeteoWeather:
         assert weather._get_weather_description(95) == "Thunderstorm"
         assert weather._get_weather_description(999) == "Unknown (code 999)"
 
-    def test_wind_direction_conversion(self):
+    def test_wind_direction_conversion(self) -> None:
         """Test wind direction conversion."""
         weather = OpenMeteoWeather()
 
@@ -199,7 +200,7 @@ class TestMCPTools:
     """Test MCP tool functions."""
 
     @pytest.mark.asyncio
-    async def test_get_current_weather_tool(self):
+    async def test_get_current_weather_tool(self) -> None:
         """Test the MCP current weather tool."""
         ctx = AsyncMock(spec=Context)
 
@@ -208,26 +209,26 @@ class TestMCPTools:
                 "Current weather at coordinates (51.5074, -0.1278): 15°C"
             )
 
-            result = await get_current_weather(51.5074, -0.1278, ctx)
+            result = await get_current_weather.fn(51.5074, -0.1278, ctx)
 
             assert result == "Current weather at coordinates (51.5074, -0.1278): 15°C"
             mock_get.assert_called_once_with(51.5074, -0.1278, ctx)
 
     @pytest.mark.asyncio
-    async def test_get_weather_forecast_tool(self):
+    async def test_get_weather_forecast_tool(self) -> None:
         """Test the MCP weather forecast tool."""
         ctx = AsyncMock(spec=Context)
 
         with patch("mcp_tools.weather.weather_client.get_weather_forecast") as mock_get:
             mock_get.return_value = "3-day forecast for coordinates (51.5074, -0.1278)"
 
-            result = await get_weather_forecast(51.5074, -0.1278, ctx, days=3)
+            result = await get_weather_forecast.fn(51.5074, -0.1278, ctx, days=3)
 
             assert result == "3-day forecast for coordinates (51.5074, -0.1278)"
             mock_get.assert_called_once_with(51.5074, -0.1278, 3, ctx)
 
     @pytest.mark.asyncio
-    async def test_search_locations_tool(self):
+    async def test_search_locations_tool(self) -> None:
         """Test the MCP location search tool."""
         ctx = AsyncMock(spec=Context)
 
@@ -246,7 +247,7 @@ class TestMCPTools:
         with patch("mcp_tools.weather.weather_client.search_locations") as mock_search:
             mock_search.return_value = mock_locations
 
-            result = await search_locations("London", ctx)
+            result = await search_locations.fn("London", ctx)
 
             assert "Found 1 locations matching 'London':" in result
             assert "London, England, United Kingdom" in result

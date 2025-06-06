@@ -375,7 +375,7 @@ class ProxyService:
 
                     # Log success
                     logger.info(
-                        f"Successfully processed JSON response: {content[:100]}"
+                        f"Successfully processed JSON response: {content[:100]!r}"
                     )
                 except Exception as e:
                     # Log the error but continue with original content

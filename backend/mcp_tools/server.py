@@ -6,7 +6,7 @@ from .ddg_search import fetch_content, search
 from .weather import get_current_weather, get_weather_forecast
 
 # Initialize combined MCP server
-mcp = FastMCP("thunderbolt-mcp")
+mcp: FastMCP = FastMCP("thunderbolt-mcp")
 
 # Register search tools
 mcp.add_tool(search)

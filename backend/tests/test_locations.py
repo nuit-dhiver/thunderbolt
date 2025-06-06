@@ -1,5 +1,6 @@
 """Tests for locations search endpoint."""
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -23,7 +24,7 @@ class TestLocationsEndpoint:
 
     def test_locations_endpoint_success(self, client: TestClient) -> None:
         """Test successful location search."""
-        mock_response = {
+        mock_response: dict[str, Any] = {
             "results": [
                 {
                     "name": "London",
@@ -67,7 +68,7 @@ class TestLocationsEndpoint:
 
     def test_locations_endpoint_no_results(self, client: TestClient) -> None:
         """Test location search with no results."""
-        mock_response = {"results": []}
+        mock_response: dict[str, Any] = {"results": []}
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_response_obj = MagicMock()

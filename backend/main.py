@@ -1,4 +1,5 @@
 import json
+from collections.abc import Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from functools import lru_cache
 from typing import Any
@@ -29,7 +30,9 @@ THUNDERBOLT_MODEL_WHITELIST = {
 }
 
 
-def create_model_transformer(prefix: str, check_prefix: str | None = None):
+def create_model_transformer(
+    prefix: str, check_prefix: str | None = None
+) -> Callable[[bytes], bytes]:
     """Create a model transformer function for a specific provider.
 
     Args:
