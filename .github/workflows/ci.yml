@@ -16,19 +16,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: nightly
-          cache: 'cargo'
           components: rustfmt, clippy
-          override: true
-          profile: minimal
-          target: x86_64-unknown-linux-gnu
-          cache-key: cargo-${{ hashFiles('**/Cargo.lock') }}
-          cache-dependency-path: |
-            **/Cargo.lock
-            src-tauri/Cargo.lock
-            src-tauri/thunderbolt_imap_client/Cargo.lock
-            src-tauri/thunderbolt_imap_sync/Cargo.lock
-            src-tauri/thunderbolt_embeddings/Cargo.lock
-            src-tauri/thunderbolt_bridge/Cargo.lock
 
       - name: Install system dependencies
         run: |
@@ -60,7 +48,7 @@ jobs:
           path: |
             ~/.bun/install/cache
             node_modules
-          key: bun-${{ hashFiles('bun.lockb') }}
+          key: bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             bun-
 
@@ -73,10 +61,11 @@ jobs:
       - name: Type check
         run: bun run tsc --noEmit
 
-      - name: Test
+      - name: Check Rust code
         run: |
-          bun run tauri build --verbose
-          bun run tauri dev --verbose
+          cd src-tauri
+          cargo check --all-targets
+          cargo clippy --all-targets -- -D warnings
 
   backend:
     runs-on: ubuntu-latest
@@ -92,7 +81,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'uv'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/uv
+            backend/.venv
+          key: uv-${{ hashFiles('backend/uv.lock') }}
+          restore-keys: |
+            uv-
 
       - name: Install dependencies
         run: |
