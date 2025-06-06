@@ -75,11 +75,20 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: nightly
-          cache-workspaces: src-tauri
+          cache: false
           rustflags: ''
 
-      - name: Install sccache
-        run: cargo install sccache
+      - name: Cache cargo registry and build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-release-
+            ${{ runner.os }}-cargo-
 
       - name: install Linux dependencies
         if: matrix.os == 'ubuntu-22.04'
@@ -95,6 +104,7 @@ jobs:
         env:
           RUSTFLAGS: ''
           CARGO_INCREMENTAL: 0
+          RUSTC_WRAPPER: ""
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
@@ -102,13 +112,11 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           bun install
-          cd src-tauri
-          cargo clean
-          cd ..
           bun tauri build
         env:
           RUSTFLAGS: ''
           CARGO_INCREMENTAL: 0
+          RUSTC_WRAPPER: ""
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
@@ -120,24 +128,24 @@ jobs:
         env:
           RUSTFLAGS: ''
           CARGO_INCREMENTAL: 0
+          RUSTC_WRAPPER: ""
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Build Tauri app for macOS (Intel)
         if: matrix.os == 'macos-latest'
         run: |
-          cd src-tauri
-          # Clean to avoid architecture conflicts
-          cargo clean
-          cd ..
           # Install x86_64 target
           rustup target add x86_64-apple-darwin
+          # Clean only the x86_64 target to avoid architecture conflicts
+          rm -rf src-tauri/target/x86_64-apple-darwin
           # Build for Intel with proper environment
           bun tauri build --bundles app,dmg --target x86_64-apple-darwin
         env:
           # Override the target-cpu=native flag
           RUSTFLAGS: '-C target-cpu=x86-64'
           CARGO_INCREMENTAL: 0
+          RUSTC_WRAPPER: ""
           # Set C compiler for cross-compilation
           CC_x86_64_apple_darwin: 'clang -target x86_64-apple-darwin'
           CXX_x86_64_apple_darwin: 'clang++ -target x86_64-apple-darwin'
