@@ -109,30 +109,24 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend
-          uv venv
-          source .venv/bin/activate
-          uv pip install -e ".[dev]"
+          make install-dev
 
       - name: Lint
         run: |
           cd backend
-          source .venv/bin/activate
-          ruff check .
+          make lint
 
       - name: Format check
         run: |
           cd backend
-          source .venv/bin/activate
-          ruff format --check .
+          make format-check
 
       - name: Type check
         run: |
           cd backend
-          source .venv/bin/activate
-          ty check *.py --ignore unresolved-import --ignore call-non-callable --ignore possibly-unbound-attribute --ignore unresolved-attribute
+          make type-check
 
       - name: Test
         run: |
           cd backend
-          source .venv/bin/activate
-          pytest
+          make test

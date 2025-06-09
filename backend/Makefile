@@ -6,6 +6,7 @@ help:
 	@echo "  make install       - Install production dependencies"
 	@echo "  make install-dev   - Install all dependencies including dev"
 	@echo "  make format        - Format code with ruff"
+	@echo "  make format-check  - Check code formatting without changes"
 	@echo "  make lint          - Run linting checks"
 	@echo "  make type-check    - Run type checking with ty"
 	@echo "  make test          - Run tests"
@@ -27,6 +28,10 @@ install-dev:
 format:
 	uv run ruff format .
 	uv run ruff check --fix .
+
+# Check formatting without making changes
+format-check:
+	uv run ruff format --check .
 
 # Run linting
 lint:
