@@ -20,7 +20,12 @@
       }
     ],
     "security": {
-      "dangerousDisableAssetCspModification": false,
+      "pattern": {
+        "use": "isolation",
+        "options": {
+          "dir": "../dist-isolation"
+        }
+      },
       "csp": {
         "default-src": "'self' tauri: asset:",
         "connect-src": "ipc:",
