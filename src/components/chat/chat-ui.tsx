@@ -188,6 +188,16 @@ export default function ChatUI({ chatHelpers, models, selectedModel, onModelChan
             {/* Show loading indicator when waiting for server response */}
             {chatHelpers.status === 'submitted' && <ChatLoadingIndicator />}
 
+            {/* Show error message if there's an error */}
+            {chatHelpers.error && (
+              <div className="p-4 rounded-md bg-destructive/10 border border-destructive/20 mr-auto">
+                <p className="text-destructive font-medium mb-1">Error</p>
+                <p className="text-destructive/80 text-sm">
+                  {chatHelpers.error.message || 'An unexpected error occurred. Please try again.'}
+                </p>
+              </div>
+            )}
+
             <div ref={scrollTargetRef} />
           </motion.div>
         )}

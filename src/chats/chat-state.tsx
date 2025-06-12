@@ -108,6 +108,10 @@ export default function ChatState({ id, models, initialMessages, saveMessages }:
         messages: [message],
       })
     },
+    onError: (error) => {
+      console.error('Chat error:', error)
+      // The error will be available in chatHelpers.error for the UI to display
+    },
   })
 
   return <ChatUI chatHelpers={chatHelpers} models={models} selectedModel={selectedModel?.id ?? null} onModelChange={handleModelChange} />
