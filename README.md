@@ -1,4 +1,4 @@
-# Thunderbolt [Demo](https://thunderbolt-h9p7.onrender.com)
+# Thunderbolt [[Demo]](https://thunderbolt-h9p7.onrender.com)
 
 **_(Formerly known as Mozilla Assist(ant))_**
 
