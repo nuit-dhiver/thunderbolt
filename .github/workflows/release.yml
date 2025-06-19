@@ -172,6 +172,7 @@ jobs:
           # Clean only the x86_64 target to avoid architecture conflicts
           rm -rf src-tauri/target/x86_64-apple-darwin
           # Build for Intel with proper environment
+          bun install
           bun tauri build --bundles app,dmg --target x86_64-apple-darwin -- --features libsql
         env:
           # Override the target-cpu=native flag
