@@ -28,6 +28,7 @@ jobs:
 
       - name: create draft release
         uses: crabnebula-dev/cloud-release@v0
+        continue-on-error: true
         with:
           command: release draft ${{ vars.CN_APPLICATION }} --framework tauri
           api-key: ${{ secrets.CN_API_KEY }}
@@ -223,6 +224,7 @@ jobs:
 
       - name: upload assets to CrabNebula
         uses: crabnebula-dev/cloud-release@v0
+        continue-on-error: true
         with:
           command: release upload ${{ vars.CN_APPLICATION }} --framework tauri
           api-key: ${{ secrets.CN_API_KEY }}
