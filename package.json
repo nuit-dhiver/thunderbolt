@@ -62,7 +62,6 @@
     "@tauri-apps/plugin-shell": "^2.2.1",
     "@tauri-apps/plugin-sql": "^2.2.0",
     "@tauri-apps/plugin-stronghold": "^2.2.0",
-    "@huggingface/transformers": "^3.5.2",
     "add": "^2.0.6",
     "ai": "^5.0.0-canary.24",
     "class-variance-authority": "^0.7.1",
