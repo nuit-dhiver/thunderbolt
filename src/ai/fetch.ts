@@ -91,6 +91,7 @@ export const aiFetchStreamingResponse = async ({
   try {
     const options = init as RequestInit & { body: string }
     const body = JSON.parse(options.body)
+    const abortSignal: AbortSignal | undefined = options.signal ?? undefined
 
     const { messages, chatId } = body as { messages: UIMessage[]; chatId: string }
 
@@ -170,6 +171,7 @@ export const aiFetchStreamingResponse = async ({
       toolCallStreaming: supportsTools,
       tools: supportsTools ? toolset : undefined,
       maxSteps: 10,
+      abortSignal,
     })
 
     return result.toUIMessageStreamResponse({ sendReasoning: true })

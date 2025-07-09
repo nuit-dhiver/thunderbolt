@@ -139,7 +139,12 @@ export default function ChatUI({ chatHelpers, models, selectedModel, onModelChan
     }
   }, [isMobile])
 
+  const isStreaming = chatHelpers.status === 'streaming'
+
   const handleSubmit = () => {
+    // Prevent submitting while streaming
+    if (isStreaming) return
+
     if (!chatHelpers.input.trim()) return
 
     const syntheticEvent = {
@@ -202,7 +207,7 @@ export default function ChatUI({ chatHelpers, models, selectedModel, onModelChan
                             <div key={partIdx} className="space-y-2 p-4 rounded-md bg-secondary mr-auto w-full">
                               <StreamingMarkdown
                                 content={part.text}
-                                isStreaming={chatHelpers.status === 'streaming' && isLastMessage && isLastPart}
+                                isStreaming={isStreaming && isLastMessage && isLastPart}
                                 className="text-secondary-foreground leading-relaxed"
                               />
                             </div>
@@ -310,8 +315,10 @@ export default function ChatUI({ chatHelpers, models, selectedModel, onModelChan
               showSubmitButton
               onSubmit={handleSubmit}
               isLoading={chatHelpers.status === 'streaming'}
+              isStreaming={isStreaming}
+              onStop={() => chatHelpers.stop()}
               autoFocus
-              submitOnEnter
+              submitOnEnter={!isStreaming}
               className="flex flex-col gap-2 bg-secondary p-4 rounded-md w-full"
             />
           </motion.div>

@@ -2,7 +2,7 @@ import { AutosizeTextarea } from '@/components/ui/autosize-textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Model } from '@/types'
-import { ArrowUp, Lock } from 'lucide-react'
+import { ArrowUp, Lock, Square } from 'lucide-react'
 import { forwardRef } from 'react'
 
 interface PromptInputProps {
@@ -19,6 +19,8 @@ interface PromptInputProps {
   className?: string
   submitOnEnter?: boolean
   noForm?: boolean
+  isStreaming?: boolean
+  onStop?: () => void
 }
 
 /**
@@ -41,18 +43,23 @@ export const PromptInput = forwardRef<HTMLFormElement, PromptInputProps>(
       className = 'flex flex-col gap-2 bg-secondary p-4 rounded-md w-full max-w-[696px] min-w-[268px]',
       submitOnEnter = false,
       noForm = false,
+      isStreaming = false,
+      onStop,
     },
     ref,
   ) => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-      onSubmit?.()
+      // Prevent submission while streaming
+      if (!isStreaming) {
+        onSubmit?.()
+      }
     }
 
     const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (submitOnEnter && e.key === 'Enter' && !e.shiftKey) {
+      if (!isStreaming && submitOnEnter && e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         onSubmit?.()
       }
@@ -88,16 +95,26 @@ export const PromptInput = forwardRef<HTMLFormElement, PromptInputProps>(
             </SelectContent>
           </Select>
 
-          {showSubmitButton && (
-            <Button
-              type="submit"
-              variant="default"
-              className="h-6 w-6 rounded-full flex items-center justify-center"
-              disabled={isLoading || !value.trim()}
-            >
-              <ArrowUp className="size-4" />
-            </Button>
-          )}
+          {showSubmitButton &&
+            (isStreaming ? (
+              <Button
+                type="button"
+                variant="default"
+                className="h-6 w-6 rounded-full flex items-center justify-center"
+                onClick={onStop}
+              >
+                <Square className="size-3" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                variant="default"
+                className="h-6 w-6 rounded-full flex items-center justify-center"
+                disabled={isLoading || !value.trim()}
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+            ))}
         </div>
       </>
     )
