@@ -1,21 +1,23 @@
+import { createPrompt } from '@/ai/prompt'
 import { DatabaseSingleton } from '@/db/singleton'
 import { modelsTable } from '@/db/tables'
-import { getSetting } from '@/lib/dal'
-import { Model, SaveMessagesFunction } from '@/types'
-import { createOpenAI } from '@ai-sdk/openai'
-import { createOpenAICompatible, type OpenAICompatibleProviderOptions } from '@ai-sdk/openai-compatible'
-// import { createOpenRouter } from '@openrouter/ai-sdk-provider' // TODO: Use when AI SDK v2 branch is stable
-import { stripTagsMiddleware } from '@/ai/middleware/strip-tags'
-import { toolCallsMiddleware } from '@/ai/middleware/tool-calls'
-import { createPrompt } from '@/ai/prompt'
 import { getCloudUrl } from '@/lib/config'
+import { getSetting } from '@/lib/dal'
 import { fetch } from '@/lib/fetch'
 import { handleFlowerChatStream } from '@/lib/flower'
 import { createToolset, getAvailableTools } from '@/lib/tools'
+import { Model, SaveMessagesFunction } from '@/types'
+import { createOpenAI } from '@ai-sdk/openai'
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+
+// Currently @openrouter/ai-sdk-provider is NOT compatible with Vercel AI SDK v5. If you enable this, you will get the following error:
+// > [Error] Chat error: – Error: Unhandled chunk type: text-start — run-tools-transformation.ts:275
+// OpenRouter is working on a new version of their SDK that is compatible with Vercel AI SDK v5. We'll uncomment this when it's ready.
+// import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+
 import {
   convertToModelMessages,
   experimental_createMCPClient,
-  extractReasoningMiddleware,
   LanguageModel,
   streamText,
   ToolInvocation,
@@ -24,6 +26,7 @@ import {
   type ToolSet,
 } from 'ai'
 import { eq } from 'drizzle-orm'
+import { defaultMiddleware } from './middleware/default'
 
 export type ToolInvocationWithResult<T = object> = ToolInvocation & {
   result: T
@@ -148,53 +151,61 @@ export const aiFetchStreamingResponse = async ({
     return handleFlowerChatStream({ messages, systemPrompt, model: model.model, tools })
   }
 
-  const baseModel = await createModel(model)
+  try {
+    const baseModel = await createModel(model)
 
-  const wrappedModel = wrapLanguageModel({
-    providerId: model.provider,
-    model: baseModel,
-    middleware: [stripTagsMiddleware, toolCallsMiddleware, extractReasoningMiddleware({ tagName: 'think' })],
-  })
+    const wrappedModel = wrapLanguageModel({
+      providerId: model.provider,
+      model: baseModel,
+      middleware: defaultMiddleware,
+    })
 
-  const result = streamText({
-    temperature: 0.25,
-    model: wrappedModel,
-    system: systemPrompt,
-    messages: convertToModelMessages(messages),
-    toolCallStreaming: supportsTools,
-    tools: supportsTools ? toolset : undefined,
-    maxSteps: 10,
-    abortSignal,
-    providerOptions: {
-      custom: {
-        // reasoningEffort: 'low',
-      } satisfies OpenAICompatibleProviderOptions,
-    },
-    onStepFinish: (_step) => {
-      // console.log('step', {
-      //   text: step.text,
-      //   finishReason: step.finishReason,
-      //   toolCallCount: step.toolCalls?.length || 0,
-      // })
-    },
-    onFinish: (_finish) => {
-      // console.log('finish', {
-      //   text: finish.text,
-      //   finishReason: finish.finishReason,
-      //   toolCallCount: finish.toolCalls?.length || 0,
-      // })
-    },
-    onError: (error) => {
-      console.error('error', error)
-    },
-    onChunk: () => {
-      // console.log('chunk', chunk)
-    },
-  })
+    const result = streamText({
+      temperature: 0.25,
+      model: wrappedModel,
+      system: systemPrompt,
+      messages: convertToModelMessages(messages),
+      toolCallStreaming: supportsTools,
+      tools: supportsTools ? toolset : undefined,
+      maxSteps: 10,
+      abortSignal,
+      // providerOptions: {
+      //   custom: {
+      //     // reasoningEffort: 'low',
+      //   } satisfies OpenAICompatibleProviderOptions,
+      // },
+      onStepFinish: (step) => {
+        console.log('step', {
+          text: step.text,
+          finishReason: step.finishReason,
+          toolCallCount: step.toolCalls?.length || 0,
+        })
+      },
+      onFinish: (finish) => {
+        console.log('finish', {
+          text: finish.text,
+          finishReason: finish.finishReason,
+          toolCallCount: finish.toolCalls?.length || 0,
+        })
+      },
+      onError: (error) => {
+        console.error('error', error)
+      },
+      onChunk: (chunk) => {
+        console.log('chunk', chunk)
+      },
+    })
 
-  return result.toUIMessageStreamResponse({
-    sendReasoning: true,
-    // Attach the modelId as metadata so the client knows which model was used
-    messageMetadata: () => ({ modelId }),
-  })
+    return result.toUIMessageStreamResponse({
+      sendReasoning: true,
+      // Attach the modelId as metadata so the client knows which model was used
+      messageMetadata: () => ({ modelId }),
+    })
+  } catch (error) {
+    console.error('aiFetchStreamingResponse error', error)
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
 }

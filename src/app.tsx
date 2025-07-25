@@ -38,6 +38,7 @@ import { migrate } from './db/migrate'
 import { DatabaseSingleton } from './db/singleton'
 import { accountsTable } from './db/tables'
 import DevToolsPage from './devtools'
+import MessageSimulatorPage from './devtools/message-simulator'
 import ImapClient from './imap/imap'
 import { ImapProvider } from './imap/provider'
 import Layout from './layout'
@@ -69,6 +70,7 @@ function AppContent({ initData }: { initData: InitData }) {
             <Route path="chats/:chatThreadId" element={<ChatDetailPage />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="automations" element={<AutomationsPage />} />
+            <Route path="message-simulator" element={<MessageSimulatorPage />} />
           </Route>
 
           {/* Settings routes with SettingsLayout */}
