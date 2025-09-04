@@ -74,6 +74,23 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       'no-async-promise-executor': 'off',
+      // Prevent importing React as default
+      'no-restricted-imports': [
+        'error',
+        {
+          name: 'react',
+          importNames: ['default'],
+          message: 'Do not import default React. Use named imports instead.',
+        },
+      ],
+      // Enforce type imports to always use the `type` keyword
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          disallowTypeAnnotations: false,
+        },
+      ],
     },
   },
   ...storybook.configs['flat/recommended'],

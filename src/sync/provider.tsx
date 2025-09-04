@@ -1,5 +1,5 @@
-import React, { createContext, useContext } from 'react'
-import ImapSyncClient from './sync'
+import { createContext, useContext, type ReactNode, type FC } from 'react'
+import type ImapSyncClient from './sync'
 
 type ImapSyncContextType = {
   client: ImapSyncClient
@@ -17,9 +17,9 @@ export const useImapSync = (): ImapSyncClient => {
 
 type ImapSyncProviderProps = {
   client: ImapSyncClient
-  children: React.ReactNode
+  children: ReactNode
 }
 
-export const ImapSyncProvider: React.FC<ImapSyncProviderProps> = ({ client, children }) => {
+export const ImapSyncProvider: FC<ImapSyncProviderProps> = ({ client, children }) => {
   return <ImapSyncContext.Provider value={{ client }}>{children}</ImapSyncContext.Provider>
 }
