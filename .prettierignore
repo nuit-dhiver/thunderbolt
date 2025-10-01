@@ -7,7 +7,6 @@ src-tauri/gen
 src/drizzle/**/*.sql
 thunderbird-mcp-bridge
 thunderbird-mcp-native
-backend
 package-lock.json
 bun.lock
 *.lock
