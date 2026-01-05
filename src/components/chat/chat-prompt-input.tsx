@@ -16,8 +16,6 @@ export type ChatPromptInputRef = {
 }
 
 type ChatPromptInputProps = {
-  handleResetUserScroll(): void
-  handleScrollToBottom(): void
   useNavigate?: typeof useNavigate_default
   useChat?: typeof useChat_default
   useContextTracking?: typeof useContextTracking_default
@@ -28,8 +26,6 @@ type ChatPromptInputProps = {
 export const ChatPromptInput = forwardRef<ChatPromptInputRef, ChatPromptInputProps>(
   (
     {
-      handleResetUserScroll,
-      handleScrollToBottom,
       useNavigate = useNavigate_default,
       useChat = useChat_default,
       useContextTracking = useContextTracking_default,
@@ -72,12 +68,6 @@ export const ChatPromptInput = forwardRef<ChatPromptInputRef, ChatPromptInputPro
         setInput('')
 
         await sendMessage({ text: textToSend })
-
-        // Reset user scroll state and scroll to bottom when submitting a new message
-        handleResetUserScroll()
-        requestAnimationFrame(() => {
-          handleScrollToBottom()
-        })
       } catch (error) {
         console.error('Error submitting message:', error)
       }
