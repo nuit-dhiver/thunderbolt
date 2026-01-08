@@ -1,7 +1,15 @@
-import { and, asc, desc, eq, like, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, like, sql } from 'drizzle-orm'
 import { DatabaseSingleton } from '../db/singleton'
 import { tasksTable } from '../db/tables'
 import type { Task } from '../types'
+
+/**
+ * Gets all tasks
+ */
+export const getAllTasks = async (): Promise<Task[]> => {
+  const db = DatabaseSingleton.instance.db
+  return await db.select().from(tasksTable)
+}
 
 /**
  * Gets all incomplete tasks, optionally filtered by search query
@@ -43,4 +51,28 @@ export const updateTask = async (id: string, updates: Partial<Task>): Promise<vo
   // Don't allow updating defaultHash - it must be preserved for modification tracking
   const { defaultHash, ...updateFields } = updates as Partial<Task> & { defaultHash?: string }
   await db.update(tasksTable).set(updateFields).where(eq(tasksTable.id, id))
+}
+
+/**
+ * Deletes a single task by ID
+ */
+export const deleteTask = async (id: string): Promise<void> => {
+  const db = DatabaseSingleton.instance.db
+  await db.delete(tasksTable).where(eq(tasksTable.id, id))
+}
+
+/**
+ * Deletes multiple tasks by their IDs
+ */
+export const deleteTasks = async (ids: string[]): Promise<void> => {
+  const db = DatabaseSingleton.instance.db
+  await db.delete(tasksTable).where(inArray(tasksTable.id, ids))
+}
+
+/**
+ * Creates a new task
+ */
+export const createTask = async (data: Pick<Task, 'id' | 'item' | 'order' | 'isComplete'>): Promise<void> => {
+  const db = DatabaseSingleton.instance.db
+  await db.insert(tasksTable).values(data)
 }

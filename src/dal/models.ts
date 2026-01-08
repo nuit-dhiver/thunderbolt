@@ -139,3 +139,21 @@ export const resetModelToDefault = async (id: string, defaultModel: Model): Prom
   const { defaultHash, ...defaultFields } = defaultModel
   await db.update(modelsTable).set(defaultFields).where(eq(modelsTable.id, id))
 }
+
+/**
+ * Deletes a model by ID
+ */
+export const deleteModel = async (id: string): Promise<void> => {
+  const db = DatabaseSingleton.instance.db
+  await db.delete(modelsTable).where(eq(modelsTable.id, id))
+}
+
+/**
+ * Creates a new model
+ */
+export const createModel = async (
+  data: Partial<Model> & Pick<Model, 'id' | 'provider' | 'name' | 'model'>,
+): Promise<void> => {
+  const db = DatabaseSingleton.instance.db
+  await db.insert(modelsTable).values(data)
+}

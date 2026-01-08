@@ -4,12 +4,15 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 import {
+  createModel,
+  deleteModel,
   getAllModels,
   getAvailableModels,
   getDefaultModelForThread,
   getModel,
   getSelectedModel,
   getSystemModel,
+  updateModel,
 } from './models'
 import { updateSettings } from './settings'
 import { resetTestDatabase, setupTestDatabase, teardownTestDatabase } from './test-utils'
@@ -403,6 +406,231 @@ describe('Models DAL', () => {
       // Should fall back to system model when the last message's model doesn't exist
       const model = await getDefaultModelForThread(threadId)
       expect(model.id).toBe(systemModelId)
+    })
+  })
+
+  describe('deleteModel', () => {
+    it('should delete a model by id', async () => {
+      const db = DatabaseSingleton.instance.db
+      const modelId = uuidv7()
+
+      await db.insert(modelsTable).values({
+        id: modelId,
+        provider: 'openai',
+        name: 'Model to delete',
+        model: 'gpt-4',
+        isSystem: 0,
+        enabled: 1,
+      })
+
+      // Verify model exists
+      const modelBefore = await getModel(modelId)
+      expect(modelBefore).not.toBe(null)
+
+      await deleteModel(modelId)
+
+      // Verify model is deleted
+      const modelAfter = await getModel(modelId)
+      expect(modelAfter).toBe(null)
+    })
+
+    it('should not throw when deleting non-existent model', async () => {
+      await expect(deleteModel('non-existent-id')).resolves.toBeUndefined()
+    })
+
+    it('should only delete the specified model', async () => {
+      const db = DatabaseSingleton.instance.db
+      const modelId1 = uuidv7()
+      const modelId2 = uuidv7()
+
+      await db.insert(modelsTable).values([
+        {
+          id: modelId1,
+          provider: 'openai',
+          name: 'Model 1',
+          model: 'gpt-4',
+          isSystem: 0,
+          enabled: 1,
+        },
+        {
+          id: modelId2,
+          provider: 'anthropic',
+          name: 'Model 2',
+          model: 'claude-3',
+          isSystem: 0,
+          enabled: 1,
+        },
+      ])
+
+      await deleteModel(modelId1)
+
+      // Verify only model 1 is deleted
+      const model1 = await getModel(modelId1)
+      const model2 = await getModel(modelId2)
+      expect(model1).toBe(null)
+      expect(model2).not.toBe(null)
+    })
+  })
+
+  describe('updateModel', () => {
+    it('should update model name', async () => {
+      const db = DatabaseSingleton.instance.db
+      const modelId = uuidv7()
+
+      await db.insert(modelsTable).values({
+        id: modelId,
+        provider: 'openai',
+        name: 'Original Name',
+        model: 'gpt-4',
+        isSystem: 0,
+        enabled: 1,
+      })
+
+      await updateModel(modelId, { name: 'Updated Name' })
+
+      const model = await getModel(modelId)
+      expect(model?.name).toBe('Updated Name')
+    })
+
+    it('should update model enabled status', async () => {
+      const db = DatabaseSingleton.instance.db
+      const modelId = uuidv7()
+
+      await db.insert(modelsTable).values({
+        id: modelId,
+        provider: 'openai',
+        name: 'Test Model',
+        model: 'gpt-4',
+        isSystem: 0,
+        enabled: 1,
+      })
+
+      await updateModel(modelId, { enabled: 0 })
+
+      // Model should no longer appear in available models
+      const availableModels = await getAvailableModels()
+      expect(availableModels.map((m) => m.id)).not.toContain(modelId)
+    })
+
+    it('should soft delete model by setting deletedAt', async () => {
+      const db = DatabaseSingleton.instance.db
+      const modelId = uuidv7()
+
+      await db.insert(modelsTable).values({
+        id: modelId,
+        provider: 'openai',
+        name: 'Model to soft delete',
+        model: 'gpt-4',
+        isSystem: 0,
+        enabled: 1,
+      })
+
+      await updateModel(modelId, { deletedAt: Date.now() })
+
+      // Model should no longer be returned by getModel
+      const model = await getModel(modelId)
+      expect(model).toBe(null)
+
+      // Model should still exist in database
+      const rawModel = await db.select().from(modelsTable).where(eq(modelsTable.id, modelId)).get()
+      expect(rawModel).not.toBeUndefined()
+      expect(rawModel?.deletedAt).not.toBeNull()
+    })
+
+    it('should update multiple fields at once', async () => {
+      const db = DatabaseSingleton.instance.db
+      const modelId = uuidv7()
+
+      await db.insert(modelsTable).values({
+        id: modelId,
+        provider: 'openai',
+        name: 'Original',
+        model: 'gpt-4',
+        isSystem: 0,
+        enabled: 1,
+      })
+
+      await updateModel(modelId, { name: 'Updated', provider: 'anthropic', model: 'claude-3' })
+
+      const model = await getModel(modelId)
+      expect(model?.name).toBe('Updated')
+      expect(model?.provider).toBe('anthropic')
+      expect(model?.model).toBe('claude-3')
+    })
+
+    it('should not throw when updating non-existent model', async () => {
+      await expect(updateModel('non-existent-id', { name: 'test' })).resolves.toBeUndefined()
+    })
+
+    it('should not update defaultHash field', async () => {
+      const db = DatabaseSingleton.instance.db
+      const modelId = uuidv7()
+
+      await db.insert(modelsTable).values({
+        id: modelId,
+        provider: 'openai',
+        name: 'Test Model',
+        model: 'gpt-4',
+        isSystem: 0,
+        enabled: 1,
+        defaultHash: 'original-hash',
+      })
+
+      // Try to update defaultHash (should be ignored)
+      await updateModel(modelId, { name: 'Updated', defaultHash: 'new-hash' } as Parameters<typeof updateModel>[1])
+
+      // Verify defaultHash was not changed
+      const rawModel = await db.select().from(modelsTable).where(eq(modelsTable.id, modelId)).get()
+      expect(rawModel?.defaultHash).toBe('original-hash')
+      expect(rawModel?.name).toBe('Updated')
+    })
+  })
+
+  describe('createModel', () => {
+    it('should create a new model', async () => {
+      const modelId = uuidv7()
+
+      await createModel({
+        id: modelId,
+        provider: 'openai',
+        name: 'New Model',
+        model: 'gpt-4',
+        enabled: 1,
+      })
+
+      const model = await getModel(modelId)
+      expect(model).not.toBe(null)
+      expect(model?.name).toBe('New Model')
+      expect(model?.provider).toBe('openai')
+    })
+
+    it('should create a disabled model excluded from getAvailableModels', async () => {
+      const modelId = uuidv7()
+
+      await createModel({
+        id: modelId,
+        provider: 'anthropic',
+        name: 'Disabled Model',
+        model: 'claude-3',
+        enabled: 0,
+      })
+
+      const availableModels = await getAvailableModels()
+      expect(availableModels.map((m) => m.id)).not.toContain(modelId)
+
+      const allModels = await getAllModels()
+      expect(allModels.map((m) => m.id)).toContain(modelId)
+    })
+
+    it('should create multiple models', async () => {
+      const modelId1 = uuidv7()
+      const modelId2 = uuidv7()
+
+      await createModel({ id: modelId1, provider: 'openai', name: 'Model 1', model: 'gpt-4', enabled: 1 })
+      await createModel({ id: modelId2, provider: 'anthropic', name: 'Model 2', model: 'claude-3', enabled: 1 })
+
+      const models = await getAllModels()
+      expect(models).toHaveLength(2)
     })
   })
 })
