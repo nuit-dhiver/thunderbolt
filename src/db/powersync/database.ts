@@ -1,7 +1,7 @@
 import { getSettings } from '@/dal'
 import { defaultSettingCloudUrl } from '@/defaults/settings'
 import type { AbstractPowerSyncDatabase } from '@powersync/common'
-import { PowerSyncDatabase, SyncStreamConnectionMethod } from '@powersync/web'
+import { PowerSyncDatabase, SyncStreamConnectionMethod, WASQLiteOpenFactory, WASQLiteVFS } from '@powersync/web'
 import type { WebPowerSyncDatabaseOptions } from '@powersync/web'
 import { wrapPowerSyncWithDrizzle } from '@powersync/drizzle-driver'
 import type { DatabaseInterface, AnyDrizzleDatabase } from '../database-interface'
@@ -107,12 +107,21 @@ export class PowerSyncDatabaseImpl implements DatabaseInterface {
     // Create PowerSync database.
     // Cast options: @powersync/web uses a nested @powersync/common, so Schema/Table types differ from our Drizzle schema.
     const options: WebPowerSyncDatabaseOptions = {
-      database: { dbFilename },
+      database: new WASQLiteOpenFactory({
+        dbFilename: dbFilename,
+        vfs: WASQLiteVFS.OPFSCoopSyncVFS,
+        flags: {
+          enableMultiTabs: false, //typeof SharedWorker !== 'undefined',
+        },
+      }),
+      // { dbFilename },
       schema: AppSchema as unknown as WebPowerSyncDatabaseOptions['schema'],
       // Disable web workers on iOS: WASM + Web Worker memory causes iOS to kill the
       // WKWebView WebContent process (~30s after launch), resulting in a black screen.
       // See: https://github.com/tauri-apps/tauri/issues/14371
-      flags: { useWebWorker: false },
+      flags: {
+        useWebWorker: false, // typeof SharedWorker !== 'undefined'
+      },
     }
     this.powerSync = new PowerSyncDatabase(options)
 
