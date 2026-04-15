@@ -53,6 +53,187 @@ describe('Account API', () => {
     await cleanup()
   })
 
+  describe('POST /v1/account/devices/:id/revoke', () => {
+    it('revokes only sessions linked to the revoked device', async () => {
+      const userId = p('session-revoke-user')
+      const token = p('session-revoke-token')
+      const attackerToken = p('session-revoke-attacker-token')
+      const deviceId = p('device-to-revoke')
+      const myDeviceId = p('my-device')
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + 3600 * 1000)
+
+      await db.insert(user).values({
+        id: userId,
+        name: 'Session Revoke User',
+        email: `${userId}@example.com`,
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+      // Create two sessions: one linked to my device, one linked to the compromised device
+      const sessionId = p('session-user-revoking')
+      const attackerSessionId = p('session-attacker')
+      await db.insert(sessionTable).values([
+        {
+          id: sessionId,
+          expiresAt,
+          token,
+          createdAt: now,
+          updatedAt: now,
+          userId,
+          deviceId: myDeviceId,
+        },
+        {
+          id: attackerSessionId,
+          expiresAt,
+          token: attackerToken,
+          createdAt: now,
+          updatedAt: now,
+          userId,
+          deviceId,
+        },
+      ])
+
+      await db.insert(devicesTable).values([
+        {
+          id: myDeviceId,
+          userId,
+          name: 'My Device',
+          lastSeen: now,
+          createdAt: now,
+        },
+        {
+          id: deviceId,
+          userId,
+          name: 'Compromised Device',
+          lastSeen: now,
+          createdAt: now,
+        },
+      ])
+
+      // Revoke the compromised device
+      const response = await app.handle(
+        new Request(`http://localhost/v1/account/devices/${deviceId}/revoke`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${signToken(token)}` },
+        }),
+      )
+      expect(response.status).toBe(204)
+
+      // My session (linked to my device) should still exist
+      const revokingSession = await db.select().from(sessionTable).where(eq(sessionTable.id, sessionId))
+      expect(revokingSession).toHaveLength(1)
+
+      // The compromised device's session should be deleted
+      const attackerSession = await db.select().from(sessionTable).where(eq(sessionTable.id, attackerSessionId))
+      expect(attackerSession).toHaveLength(0)
+    })
+
+    it('preserves revoking session when it is on a different device', async () => {
+      const userId = p('single-session-user')
+      const token = p('single-session-token')
+      const sessionId = p('session-only-one')
+      const myDeviceId = p('my-device-single')
+      const deviceId = p('device-single-session')
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + 3600 * 1000)
+
+      await db.insert(user).values({
+        id: userId,
+        name: 'Single Session User',
+        email: `${userId}@example.com`,
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+      await db.insert(sessionTable).values({
+        id: sessionId,
+        expiresAt,
+        token,
+        createdAt: now,
+        updatedAt: now,
+        userId,
+        deviceId: myDeviceId,
+      })
+
+      await db.insert(devicesTable).values({
+        id: deviceId,
+        userId,
+        name: 'Device',
+        lastSeen: now,
+        createdAt: now,
+      })
+
+      const response = await app.handle(
+        new Request(`http://localhost/v1/account/devices/${deviceId}/revoke`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${signToken(token)}` },
+        }),
+      )
+      expect(response.status).toBe(204)
+
+      // Session should still exist (linked to a different device)
+      const sessions = await db.select().from(sessionTable).where(eq(sessionTable.id, sessionId))
+      expect(sessions).toHaveLength(1)
+    })
+
+    it('does not invalidate sessions when revoking a nonexistent device', async () => {
+      const userId = p('nonexistent-revoke-user')
+      const token = p('nonexistent-revoke-token')
+      const otherToken = p('nonexistent-revoke-other-token')
+      const sessionId = p('session-revoker')
+      const otherSessionId = p('session-other')
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + 3600 * 1000)
+
+      await db.insert(user).values({
+        id: userId,
+        name: 'Nonexistent Revoke User',
+        email: `${userId}@example.com`,
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+      await db.insert(sessionTable).values([
+        {
+          id: sessionId,
+          expiresAt,
+          token,
+          createdAt: now,
+          updatedAt: now,
+          userId,
+        },
+        {
+          id: otherSessionId,
+          expiresAt,
+          token: otherToken,
+          createdAt: now,
+          updatedAt: now,
+          userId,
+        },
+      ])
+
+      // Revoke a device that doesn't exist
+      const response = await app.handle(
+        new Request('http://localhost/v1/account/devices/nonexistent-device/revoke', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${signToken(token)}` },
+        }),
+      )
+      expect(response.status).toBe(204)
+
+      // Both sessions should still exist — no device was actually revoked
+      const revokerSession = await db.select().from(sessionTable).where(eq(sessionTable.id, sessionId))
+      expect(revokerSession).toHaveLength(1)
+      const otherSession = await db.select().from(sessionTable).where(eq(sessionTable.id, otherSessionId))
+      expect(otherSession).toHaveLength(1)
+    })
+  })
+
   describe('DELETE /v1/account', () => {
     it('should return 401 when not authenticated', async () => {
       const response = await app.handle(
@@ -300,14 +481,15 @@ describe('Account API', () => {
         }),
       )
 
-      expect(response.status).toBe(404)
+      // Returns 204 (idempotent) but device is NOT actually revoked
+      expect(response.status).toBe(204)
 
       const [device] = await db.select().from(devicesTable).where(eq(devicesTable.id, deviceId))
       expect(device.trusted).toBe(true)
       expect(device.revokedAt).toBeNull()
     })
 
-    it('returns 404 for non-existent device', async () => {
+    it('returns 204 for non-existent device (idempotent)', async () => {
       const userId = p('revoke-nonexistent-user')
       const token = p('revoke-nonexistent-token')
       await createUserAndSession(userId, token)
@@ -319,10 +501,10 @@ describe('Account API', () => {
         }),
       )
 
-      expect(response.status).toBe(404)
+      expect(response.status).toBe(204)
     })
 
-    it('returns 204 when revoking already-revoked device (idempotent)', async () => {
+    it('returns 204 when revoking already-revoked device (preserves original revokedAt)', async () => {
       const userId = p('revoke-idempotent-user')
       const token = p('revoke-idempotent-token')
       const deviceId = p('device-already-revoked')
@@ -338,14 +520,18 @@ describe('Account API', () => {
       })
 
       // First revoke
-      await app.handle(
+      const firstResponse = await app.handle(
         new Request(`http://localhost/v1/account/devices/${deviceId}/revoke`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${signToken(token)}` },
         }),
       )
+      expect(firstResponse.status).toBe(204)
 
-      // Second revoke
+      const [afterFirst] = await db.select().from(devicesTable).where(eq(devicesTable.id, deviceId))
+      const originalRevokedAt = afterFirst.revokedAt
+
+      // Second revoke — no-op because isNull(revokedAt) guard skips already-revoked devices
       const response = await app.handle(
         new Request(`http://localhost/v1/account/devices/${deviceId}/revoke`, {
           method: 'POST',
@@ -355,8 +541,9 @@ describe('Account API', () => {
 
       expect(response.status).toBe(204)
 
+      // Original revokedAt timestamp is preserved
       const [device] = await db.select().from(devicesTable).where(eq(devicesTable.id, deviceId))
-      expect(device.revokedAt).not.toBeNull()
+      expect(device.revokedAt).toEqual(originalRevokedAt)
     })
 
     it('handles device with no envelope gracefully', async () => {

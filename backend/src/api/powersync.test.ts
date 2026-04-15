@@ -428,6 +428,103 @@ describe('PowerSync API', () => {
       expect(data).toEqual({ code: 'DEVICE_ID_REQUIRED' })
     })
 
+    it('rejects token request for unregistered device ID', async () => {
+      const userId = 'user-unregistered-device'
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + 3600 * 1000)
+
+      await db.insert(userTable).values({
+        id: userId,
+        name: 'Unregistered Device User',
+        email: 'unregistered-device@example.com',
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+      await db.insert(sessionTable).values({
+        id: 'session-unregistered-device',
+        expiresAt,
+        token: 'bearer-unregistered-device',
+        createdAt: now,
+        updatedAt: now,
+        userId,
+      })
+
+      // Device ID 'nonexistent-device' is NOT in the DB
+      const response = await app.handle(
+        new Request('http://localhost/powersync/token', {
+          headers: {
+            Authorization: `Bearer ${signToken('bearer-unregistered-device')}`,
+            'x-device-id': 'nonexistent-device',
+          },
+        }),
+      )
+      expect(response.status).toBe(403)
+      const data = await response.json()
+      expect(data).toEqual({ code: 'DEVICE_NOT_TRUSTED' })
+    })
+
+    it('revoked device cannot bypass by using a new unregistered device ID', async () => {
+      const userId = 'user-revocation-bypass'
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + 3600 * 1000)
+
+      await db.insert(userTable).values({
+        id: userId,
+        name: 'Revocation Bypass User',
+        email: 'revocation-bypass@example.com',
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+      await db.insert(sessionTable).values({
+        id: 'session-revocation-bypass',
+        expiresAt,
+        token: 'bearer-revocation-bypass',
+        createdAt: now,
+        updatedAt: now,
+        userId,
+      })
+
+      // Register and revoke a device
+      const revokedAt = new Date()
+      await db.insert(devicesTable).values({
+        id: 'original-device',
+        userId,
+        name: 'Original Device',
+        lastSeen: new Date(revokedAt.getTime() - 60 * 1000),
+        createdAt: new Date(revokedAt.getTime() - 120 * 1000),
+        revokedAt,
+      })
+
+      // Verify the revoked device is rejected
+      const revokedResponse = await app.handle(
+        new Request('http://localhost/powersync/token', {
+          headers: {
+            Authorization: `Bearer ${signToken('bearer-revocation-bypass')}`,
+            'x-device-id': 'original-device',
+          },
+        }),
+      )
+      expect(revokedResponse.status).toBe(403)
+      expect(await revokedResponse.json()).toEqual({ code: 'DEVICE_DISCONNECTED' })
+
+      // Attempt bypass: use a NEW device ID that doesn't exist in the DB
+      const bypassResponse = await app.handle(
+        new Request('http://localhost/powersync/token', {
+          headers: {
+            Authorization: `Bearer ${signToken('bearer-revocation-bypass')}`,
+            'x-device-id': 'bypass-attempt-new-device',
+          },
+        }),
+      )
+      // Must NOT succeed — unknown device IDs should be rejected
+      expect(bypassResponse.status).toBe(403)
+      expect(await bypassResponse.json()).toEqual({ code: 'DEVICE_NOT_TRUSTED' })
+    })
+
     it('returns token and powerSyncUrl when authenticated via session with x-device-id', async () => {
       const userId = 'user-powersync-token'
       const now = new Date()
@@ -468,7 +565,7 @@ describe('PowerSync API', () => {
       expect(data.powerSyncUrl).toBe('https://powersync.example.com')
     })
 
-    it('updates device name and lastSeen when x-device-id and x-device-name are provided', async () => {
+    it('updates device name when x-device-name is provided on token request', async () => {
       const userId = 'user-device-upsert'
       const now = new Date()
       const expiresAt = new Date(now.getTime() + 3600 * 1000)
@@ -768,6 +865,44 @@ describe('PowerSync API', () => {
       expect(response.status).toBe(403)
       const data = (await response.json()) as { code: string }
       expect(data.code).toBe('DEVICE_DISCONNECTED')
+    })
+
+    it('rejects upload for unregistered device ID', async () => {
+      const userId = 'user-upload-unregistered'
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + 3600 * 1000)
+
+      await db.insert(userTable).values({
+        id: userId,
+        name: 'Upload Unregistered User',
+        email: 'upload-unregistered@example.com',
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+      await db.insert(sessionTable).values({
+        id: 'session-upload-unregistered',
+        expiresAt,
+        token: 'bearer-upload-unregistered',
+        createdAt: now,
+        updatedAt: now,
+        userId,
+      })
+
+      // Device 'unknown-upload-device' is NOT registered
+      const response = await app.handle(
+        new Request('http://localhost/powersync/upload', {
+          method: 'PUT',
+          headers: uploadHeaders('bearer-upload-unregistered', 'unknown-upload-device'),
+          body: JSON.stringify({
+            operations: [{ op: 'PUT' as const, type: 'settings', id: 'key', data: { value: 'x' } }],
+          }),
+        }),
+      )
+      expect(response.status).toBe(403)
+      const data = (await response.json()) as { code: string }
+      expect(data.code).toBe('DEVICE_NOT_TRUSTED')
     })
 
     it('returns 422 when body schema is invalid (operations not an array)', async () => {
@@ -1794,7 +1929,7 @@ describe('PowerSync cross-origin injection protection', () => {
 
   describe('PUT /powersync/upload origin validation', () => {
     it('rejects upload from disallowed cross-origin (attacker port)', async () => {
-      await seedUser('user-cors-upload', 'bearer-cors-upload')
+      await seedUser('user-cors-upload', 'bearer-cors-upload', 'cors-test-device')
       const response = await app.handle(
         new Request('http://localhost/powersync/upload', {
           method: 'PUT',
@@ -1821,7 +1956,7 @@ describe('PowerSync cross-origin injection protection', () => {
     })
 
     it('rejects model injection from attacker origin', async () => {
-      await seedUser('user-model-inject', 'bearer-model-inject')
+      await seedUser('user-model-inject', 'bearer-model-inject', 'attacker-device')
       const response = await app.handle(
         new Request('http://localhost/powersync/upload', {
           method: 'PUT',
@@ -1857,7 +1992,7 @@ describe('PowerSync cross-origin injection protection', () => {
     })
 
     it('rejects MCP server injection from attacker origin', async () => {
-      await seedUser('user-mcp-inject', 'bearer-mcp-inject')
+      await seedUser('user-mcp-inject', 'bearer-mcp-inject', 'attacker-device')
       const response = await app.handle(
         new Request('http://localhost/powersync/upload', {
           method: 'PUT',
@@ -1951,7 +2086,7 @@ describe('PowerSync cross-origin injection protection', () => {
     })
 
     it('rejects upload from external attacker domain', async () => {
-      await seedUser('user-ext-attacker', 'bearer-ext-attacker')
+      await seedUser('user-ext-attacker', 'bearer-ext-attacker', 'attacker-device')
       const response = await app.handle(
         new Request('http://localhost/powersync/upload', {
           method: 'PUT',
@@ -1974,7 +2109,7 @@ describe('PowerSync cross-origin injection protection', () => {
 
   describe('GET /powersync/token origin validation', () => {
     it('rejects token request from disallowed origin', async () => {
-      await seedUser('user-cors-token', 'bearer-cors-token')
+      await seedUser('user-cors-token', 'bearer-cors-token', 'cors-token-device')
       const response = await app.handle(
         new Request('http://localhost/powersync/token', {
           headers: {

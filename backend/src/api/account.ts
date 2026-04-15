@@ -1,6 +1,6 @@
 import type { Auth } from '@/auth/elysia-plugin'
 import { createAuthMacro } from '@/auth/elysia-plugin'
-import { deleteUser, revokeDevice, deleteEnvelope } from '@/dal'
+import { deleteUser, revokeDevice, deleteEnvelope, revokeDeviceSessions } from '@/dal'
 import type { db as DbType } from '@/db/client'
 import { safeErrorHandler } from '@/middleware/error-handling'
 import { Elysia } from 'elysia'
@@ -14,16 +14,15 @@ export const createAccountRoutes = (auth: Auth, database: typeof DbType) => {
       '/devices/:id/revoke',
       async ({ params, set, user: sessionUser }) => {
         const userId = sessionUser!.id
-        const revoked = await database.transaction(async (tx) => {
+        await database.transaction(async (tx) => {
           const txDb = tx as unknown as typeof database
           await deleteEnvelope(txDb, params.id, userId)
           const rows = await revokeDevice(txDb, params.id, userId)
-          return rows.length > 0
+
+          if (rows.length > 0) {
+            await revokeDeviceSessions(txDb, params.id, userId)
+          }
         })
-        if (!revoked) {
-          set.status = 404
-          return { error: 'Device not found' }
-        }
         set.status = 204
       },
       { auth: true },

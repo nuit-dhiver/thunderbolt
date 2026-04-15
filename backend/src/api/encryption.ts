@@ -1,6 +1,9 @@
 import { type Auth, createAuthMacro } from '@/auth/elysia-plugin'
+
 import {
+  countActiveDevices,
   getDeviceById,
+  linkSessionToDevice,
   registerDevice,
   denyDevice,
   markDeviceTrusted,
@@ -14,6 +17,8 @@ import type { db as DbType } from '@/db/client'
 import { BadRequestError, ForbiddenError } from '@/errors/http-errors'
 import { timingSafeEqual } from 'crypto'
 import { Elysia, t } from 'elysia'
+
+const MAX_DEVICES_PER_USER = 10
 
 /** Hash a canary secret using SHA-256. Returns hex-encoded hash. */
 const hashCanarySecret = async (secret: string): Promise<string> => {
@@ -61,11 +66,11 @@ export const createEncryptionRoutes = (auth: Auth, database: typeof DbType) =>
     .use(createAuthMacro(auth))
     .post(
       '/devices',
-      async ({ body, set, user: sessionUser }) => {
+      async ({ body, set, user: sessionUser, session }) => {
         const userId = sessionUser!.id
         const { deviceId, publicKey, mlkemPublicKey, name } = body
 
-        // Check if device already exists
+        // Check if device already exists (fast-path before transaction)
         const existingDevice = await getDeviceById(database, deviceId)
 
         if (existingDevice) {
@@ -84,6 +89,7 @@ export const createEncryptionRoutes = (auth: Auth, database: typeof DbType) =>
           // Encryption-registered device (has publicKey): return current state
           if (existingDevice.publicKey) {
             if (existingDevice.trusted) {
+              await linkSessionToDevice(database, session.id, deviceId, userId)
               const envelope = await getEnvelopeByDeviceId(database, deviceId, userId)
               return {
                 trusted: true as const,
@@ -97,16 +103,45 @@ export const createEncryptionRoutes = (auth: Auth, database: typeof DbType) =>
           // Pre-encryption device (no publicKey): fall through to register with publicKey
         }
 
-        // New device OR pre-encryption device — register with publicKey
+        // Wrap limit check + registration in a transaction to prevent TOCTOU race
         const deviceName = name || 'Unknown device'
-        await registerDevice(database, {
-          id: deviceId,
-          userId,
-          name: deviceName,
-          publicKey,
-          mlkemPublicKey,
+        const result = await database.transaction(async (tx) => {
+          const txDb = tx as unknown as typeof database
+
+          // Re-check device inside transaction to close race window
+          const freshDevice = await getDeviceById(txDb, deviceId)
+          if (!freshDevice) {
+            const activeCount = await countActiveDevices(txDb, userId)
+            if (activeCount >= MAX_DEVICES_PER_USER) return { limitReached: true as const }
+          }
+
+          const registered = await registerDevice(txDb, {
+            id: deviceId,
+            userId,
+            name: deviceName,
+            publicKey,
+            mlkemPublicKey,
+          })
+
+          // If upsert returned no rows, another user claimed this device ID
+          if (registered.length === 0 || registered[0].userId !== userId) {
+            return { taken: true as const }
+          }
+
+          return { ok: true as const }
         })
 
+        if ('limitReached' in result) {
+          set.status = 422
+          return { error: 'Device limit reached' }
+        }
+
+        if ('taken' in result) {
+          set.status = 409
+          return { error: 'Device ID already taken' }
+        }
+
+        await linkSessionToDevice(database, session.id, deviceId, userId)
         return { trusted: false as const }
       },
       {
