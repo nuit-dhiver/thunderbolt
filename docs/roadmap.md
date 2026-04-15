@@ -1,4 +1,4 @@
-# Roadmap
+# Features and Roadmap
 
 | Platform | Status |
 | --- | --- |
@@ -19,8 +19,8 @@
 | Search Mode | ✅ |
 | Research Mode | ✅ |
 | Custom Models / Providers | ✅ |
-| Optional End-to-End Encryption | ✅ |
-| Cross-Device Cloud Sync | ✅ |
+| Optional End-to-End Encryption | Preview |
+| Cross-Device Cloud Sync | Preview |
 | Google Integration | ✅ |
 | Microsoft Integration | ✅ |
 | Ollama Compatibility | ✅ |

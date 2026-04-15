@@ -29,7 +29,7 @@ We welcome contributions from everyone.
 ## Documentation
 
 - [Development](./docs/development.md) - Quick start, setup, and testing
-- [Roadmap](./docs/roadmap.md) - Platform and feature status
+- [Features and Roadmap](./docs/roadmap.md) - Platform and feature status
 - [Claude Code Skills](./docs/claude-code.md) - Slash commands, automation, and subtree syncing
 - [Storybook](./docs/storybook.md) - Build, test, and document components
 - [Vite Bundle Analyzer](./docs/vite-bundle-analyzer.md) - Analyze frontend bundle size
